@@ -1,0 +1,13 @@
+{
+  "name": "@craft-beer-viz/processor",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Attila Bagossy",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "csvtojson": "^2.0.8"
+  }
+}
