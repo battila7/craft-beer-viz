@@ -4,13 +4,9 @@ const csv = require('csvtojson');
 
 const paths = require('./paths');
 
-const BEERS_OUTPUT_PATH = paths.inOutputDirectory('01-to-json-beers.json');
-const BREWERIES_OUTPUT_PATH = paths.inOutputDirectory('01-to-json-breweries.json');
+const asJSONDocument = path => csv().fromFile(path)
 
-[[paths.originalBeers, BEERS_OUTPUT_PATH], [paths.originalBreweries, BREWERIES_OUTPUT_PATH]]
-    .forEach(([inputPath, outputPath]) => {
-        csv()
-            .fromFile(inputPath)
-            .then(data => JSON.stringify(data))
-            .then(contents => writeFile(outputPath, contents));
-    });
+Promise.all([paths.originalBeers, paths.originalBreweries].map(asJSONDocument))
+    .then(([beers, breweries]) => ({ beers, breweries }))
+    .then(document => JSON.stringify(document))
+    .then(contents => writeFile(paths.toJson, contents));
