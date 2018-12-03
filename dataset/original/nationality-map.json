@@ -1,0 +1,126 @@
+{
+    "american": [
+        "American IPA",
+        "American Pale Ale (APA)",
+        "American Amber / Red Ale",
+        "American Blonde Ale",
+        "American Double / Imperial IPA",
+        "American Pale Wheat Ale",
+        "American Brown Ale",
+        "American Porter",
+        "American Stout",
+        "American Pale Lager",
+        "American Black Ale",
+        "Cream Ale",
+        "American Amber / Red Lager",
+        "American Pilsner",
+        "American Adjunct Lager",
+        "American Strong Ale",
+        "American White IPA",
+        "American Double / Imperial Stout",
+        "American Dark Wheat Ale",
+        "California Common / Steam Beer",
+        "American Wild Ale",
+        "American India Pale Lager",
+        "American Barleywine",
+        "American Double / Imperial Pilsner",
+        "American Malt Liquor"
+    ],
+    "belgian": [
+        "Saison / Farmhouse Ale",
+        "Witbier",
+        "Belgian Pale Ale",
+        "Belgian IPA",
+        "Belgian Dark Ale",
+        "Belgian Strong Pale Ale",
+        "Belgian Strong Dark Ale",
+        "Dubbel",
+        "Abbey Single Ale",
+        "Flanders Red Ale",
+        "Flanders Oud Bruin",
+        "Grisette"
+    ],
+    "german": [
+        "Kölsch",
+        "Hefeweizen",
+        "German Pilsener",
+        "Märzen / Oktoberfest",
+        "Munich Helles Lager",
+        "Altbier",
+        "Berliner Weissbier",
+        "Gose",
+        "Schwarzbier",
+        "Doppelbock",
+        "Bock",
+        "Dortmunder / Export Lager",
+        "Maibock / Helles Bock",
+        "Dunkelweizen",
+        "Munich Dunkel Lager",
+        "Keller Bier / Zwickel Bier",
+        "Rauchbier",
+        "Roggenbier",
+        "Kristalweizen",
+    ],
+    "czech": [
+        "Czech Pilsener"
+    ],
+    "austrian": [
+        "Vienna Lager"
+    ],
+    "scottish": [
+        "Scottish Ale",
+        "Scotch Ale / Wee Heavy"
+    ],
+    "english": [
+        "English Brown Ale",
+        "English India Pale Ale (IPA)",
+        "English Pale Ale",
+        "English Dark Mild Ale",
+        "English Strong Ale",
+        "English Bitter",
+        "English Barleywine",
+        "English Pale Mild Ale",
+        "English Stout"
+    ],
+    "irish": [
+        "Irish Red Ale",
+        "Irish Dry Stout"
+    ],
+    "russian": [
+        "Russian Imperial Stout",
+        "Baltic Porter"
+    ],
+    "dutch": [
+        "Tripel",
+        "Quadrupel (Quad)"
+    ],
+    "french": [
+        "Bière de Garde"
+    ],
+    "misc": [
+        "Fruit / Vegetable Beer",
+        "Cider",
+        "Pumpkin Ale",
+        "Oatmeal Stout",
+        "Rye Beer",
+        "Extra Special / Strong Bitter (ESB)",
+        "Winter Warmer",
+        "Light Lager",
+        "Milk / Sweet Stout",
+        "Herbed / Spiced Beer",
+        "Foreign / Export Stout",
+        "Euro Dark Lager",
+        "Mead",
+        "",
+        "Chile Beer",
+        "Radler",
+        "Shandy",
+        "Old Ale",
+        "Euro Pale Lager",
+        "Smoked Beer",
+        "Braggot",
+        "Other",
+        "Wheat Ale",
+        "Low Alcohol Beer"
+    ]
+}
