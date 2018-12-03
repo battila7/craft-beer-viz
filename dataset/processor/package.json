@@ -8,6 +8,7 @@
   "author": "Attila Bagossy",
   "license": "Apache-2.0",
   "dependencies": {
+    "@google/maps": "^0.5.5",
     "csvtojson": "^2.0.8"
   }
 }
