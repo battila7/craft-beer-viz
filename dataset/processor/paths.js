@@ -9,5 +9,6 @@ module.exports = {
     originalBreweries: path.join(__dirname, '..', 'original', 'breweries.csv'),
 
     toJson: inOutputDirectory('01-to-json.json'),
-    geocoder: inOutputDirectory('02-geocoder.json')
+    geocoder: inOutputDirectory('02-geocoder.json'),
+    beerIntoBrewery: inOutputDirectory('03-beer-into-brewery.json')
 };
