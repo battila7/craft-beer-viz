@@ -13,6 +13,7 @@ const paths = require('./paths');
     const beers = document
         .map(brewery => {
             brewery.beers.forEach(beer => beer.state = brewery.state);
+            brewery.hasLogo = paths.hasLogo(brewery.name);
 
             return brewery;
         })

@@ -1,10 +1,13 @@
 const path = require('path');
+const { existsSync } = require('fs');
 
 const outputDirectory = path.join(__dirname, '..', 'processed');
 const originalDirectory = path.join(__dirname, '..', 'original');
 
 const inOutputDirectory = (...fragments) => path.join(outputDirectory, ...fragments)
 const inOriginalDirectory = (...fragments) => path.join(originalDirectory, ...fragments);
+
+const hasLogo = breweryName => existsSync(inOriginalDirectory('logo', breweryName + '.jpg'));
 
 module.exports = {
     originalBeers: inOriginalDirectory('beers.csv'),
@@ -13,6 +16,7 @@ module.exports = {
     nationalities: inOriginalDirectory('nationality-map.json'),
     types: inOriginalDirectory('type-map.json'),
     states: inOriginalDirectory('state-map.json'),
+    hasLogo,
 
     toJson: inOutputDirectory('01-to-json.json'),
     geocoder: inOutputDirectory('02-geocoder.json'),
