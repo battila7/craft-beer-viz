@@ -12,6 +12,20 @@ document.addEventListener('DOMContentLoaded', function() {
     var instances = M.Sidenav.init(elems, {
         edge: 'right'
     });
+
+    var elems = document.querySelectorAll('.modal');
+    var instances = M.Modal.init(elems, {});
+
+    var elem = document.querySelector('.viz-mode-modal-trigger');
+    elem.addEventListener('click', function () {
+        var elems = document.querySelectorAll('.sidenav');
+        var instance = M.Sidenav.getInstance(elems[0]);
+        instance.close();
+
+        var elem = document.getElementById('viz-mode-modal');
+        var instance = M.Modal.getInstance(elem);
+        instance.open();
+    });
 });
 (async function mainIIFE() {
     const State = {
