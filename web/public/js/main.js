@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
 
         initializeLegendPanel("The color indicates the number of breweries.", legs);
+        unsetLegendSelection();
 
         let max = 0;
         for (const state of Object.values(State.data.dataset.state.aggregate)) {
@@ -95,6 +96,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 const state = State.data.dataset.state.aggregate[abbreviation];
 
                 setLegendSelection(`State: ${state.name}`, `Number of Breweries: ${state.numberOfBreweries}`);
+            })
+            .on('mouseleave', function() {
+                unsetLegendSelection();
+            })
+    });
+
+    document.querySelector('.number-of-beers-action').addEventListener('click', function() {
+        var elem = document.getElementById('viz-mode-modal');
+        var instance = M.Modal.getInstance(elem);
+        instance.close();
+
+        var elem = document.querySelector('.legend-card-container');
+
+        elem.classList.add('fade');
+        const legs = [
+            { color: interpolateColor(0), text: 'No beers at all.' },
+            { color: interpolateColor(0.5), text: 'Moderate number of beers.' },
+            { color: interpolateColor(1), text: 'Tons of beers.' }
+        ];
+
+        initializeLegendPanel("The color indicates the number of beers.", legs);
+        unsetLegendSelection();
+
+        let max = 0;
+        for (const state of Object.values(State.data.dataset.state.aggregate)) {
+            if (state.numberOfBeers > max) {
+                max = state.numberOfBeers;
+            }
+        }
+
+        State.elements.mainMap.selectAll('path')
+            .style('fill', function (d) {
+                const abbreviation = State.data.dataset.inverseStateMap[d.properties.name];
+                const state = State.data.dataset.state.aggregate[abbreviation];
+
+                if (!state) {
+                    return interpolateColor(0);
+                }
+
+                return interpolateColor(state.numberOfBeers / max);
+            })
+            .on('mouseover', function(d) {
+                const abbreviation = State.data.dataset.inverseStateMap[d.properties.name];
+                const state = State.data.dataset.state.aggregate[abbreviation];
+
+                setLegendSelection(`State: ${state.name}`, `Number of Beers: ${state.numberOfBeers}`);
             })
             .on('mouseleave', function() {
                 unsetLegendSelection();
