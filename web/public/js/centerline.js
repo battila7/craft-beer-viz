@@ -91,21 +91,11 @@ window.centerline = (function centerlineIIFE() {
     return window.simplify(points.map(p => ({ x: p[0], y: p[1] })), 8).map(p => [p.x, p.y]);
   }
 
-  return function centerline(feature, projection, id, width, height, labeltext) {
-    const simplification = 8;
-    const measurementStep = 5;
+  function computeCenterline(feature, projection, width, height) {
     const offset = 0.5;
     const numPerimeterPoints = 50;
 
-    let outerRing = (function () {
-      const s = projection.scale(),
-        t = projection.translate();
-
-      return feature.geometry.coordinates[0]
-        .slice(1)
-        .map(point => [s * point[0] + t[0], s * point[1] + t[1]]);
-    })();
-
+    let outerRing;
     if (feature.geometry.type == 'MultiPolygon') {
       outerRing = feature.geometry.coordinates[0][0].map(projection);
     } else {
@@ -231,7 +221,23 @@ window.centerline = (function centerlineIIFE() {
       return Math.abs(tangent) > Math.PI / 2;
     })();
 
-    const centerline = d3.line().curve(d3.curveBasis)(flipText ? simplifiedLine.slice(0).reverse() : simplifiedLine)
+    return d3.line().curve(d3.curveBasis)(flipText ? simplifiedLine.slice(0).reverse() : simplifiedLine);
+  }
+
+  function placeTextAlongCenterline(centerline, feature, projection, id, width, height, labeltext) {
+    const measurementStep = 5;
+    const offset = 0.5;
+    const numPerimeterPoints = 50;
+
+    let outerRing;
+
+    if (feature.geometry.type == 'MultiPolygon') {
+      outerRing = feature.geometry.coordinates[0][0].map(projection);
+    } else {
+      outerRing = feature.geometry.coordinates[0].map(projection);
+    }    
+
+    const polygon = getPointsAlongPolyline(outerRing, numPerimeterPoints)
 
     const bbox = (function () {
       var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -340,4 +346,9 @@ window.centerline = (function centerlineIIFE() {
         <textPath xlink:href="#${id}" startOffset="50%" text-anchor="middle">${labeltext}</textPath>
       </text>`;
   }
+
+  return {
+    computeCenterline,
+    placeTextAlongCenterline
+  };
 })();

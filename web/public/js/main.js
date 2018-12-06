@@ -47,9 +47,6 @@ document.addEventListener('DOMContentLoaded', function() {
     await loadMapGeometry();
     await loadDataset();
 
-    console.log(State.data.geometry.features[0].geometry.coordinates[0])
-    console.log(State.data.geometry.features[0].geometry.coordinates[0].map(projection));
-
     State.elements.mainMap.selectAll('path')
         .data(State.data.geometry.features)
         .enter()
@@ -69,9 +66,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const cl = centerline(feature, projection, `pa${index}`, width, height, feature.properties.name);
+            const cl = centerline.computeCenterline(feature, projection, width, height, feature.properties.name);
+            const label = centerline.placeTextAlongCenterline(cl, feature, projection, `pa${index}`, width, height, feature.properties.name);
 
-            elem.innerHTML += cl;
+            elem.innerHTML += label;
 
             index++;
         });
