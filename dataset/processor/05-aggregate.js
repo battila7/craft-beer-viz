@@ -9,6 +9,20 @@ const paths = require('./paths');
     const typeMap = await readAsJSON(paths.types);
     const types = Object.keys(typeMap);
     const stateMap = await readAsJSON(paths.states);
+    const nationalityNameMap = {
+        "american": "American",
+        "german": "German",
+        "belgian": "Belgian",
+        "dutch": "Dutch",
+        "russian": "Russian",
+        "english": "English",
+        "scottish": "Scottish",
+        "irish": "Irish",
+        "french": "French",
+        "misc": "Other",
+        "czech": "Czech",
+        "austrian": "Austrian"
+    };
 
     const inverseStateMap = {};
 
@@ -42,7 +56,8 @@ const paths = require('./paths');
         typeMap,
         nationalityMap,
         stateMap,
-        inverseStateMap
+        inverseStateMap,
+        nationalityNameMap
     };
 
     writeFile(paths.aggregate, JSON.stringify(result));
