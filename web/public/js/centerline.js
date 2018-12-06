@@ -97,13 +97,9 @@ window.centerline = (function centerlineIIFE() {
     const offset = 0.5;
     const numPerimeterPoints = 50;
 
-    console.log(feature);
-
     let outerRing = (function () {
       const s = projection.scale(),
         t = projection.translate();
-    
-      console.log(feature.geometry.coordinates[0][0]);
 
       return feature.geometry.coordinates[0]
         .slice(1)
@@ -116,11 +112,7 @@ window.centerline = (function centerlineIIFE() {
       outerRing = feature.geometry.coordinates[0].map(projection);
     }    
 
-    console.log(outerRing);
-
     const polygon = getPointsAlongPolyline(outerRing, numPerimeterPoints)
-
-    console.log(polygon);
 
     const voronoi = (function () {
       const [x0, x1] = d3.extent(polygon.map(d => d[0])),
@@ -128,8 +120,6 @@ window.centerline = (function centerlineIIFE() {
 
       return d3.voronoi().extent([[x0 - 1, y0 - 1], [x1 + 1, y1 + 1]])(polygon).edges;
     })();
-
-    console.log(voronoi);
 
     const edges = (function () {
       return voronoi
@@ -187,8 +177,6 @@ window.centerline = (function centerlineIIFE() {
       return nodes;
     })();
 
-    console.log(nodes);
-
     const graph = (function () {
       const graph = new Graph();
       nodes.forEach(node => graph.addNode(node.id, node.links));
@@ -199,8 +187,6 @@ window.centerline = (function centerlineIIFE() {
 
     const traversal = (function () {
       let totalBest;
-
-      console.log(perimeterNodes);
 
       for (let i = 0; i < perimeterNodes.length; i++) {
         const start = perimeterNodes[i];
@@ -220,7 +206,6 @@ window.centerline = (function centerlineIIFE() {
           }
         }
       }
-      console.log(totalBest);
       if (totalBest) {
         return {
           bestPath: totalBest.path
@@ -240,8 +225,6 @@ window.centerline = (function centerlineIIFE() {
         .append("path")
         .attr("d", "M" + simplifiedLine.join("L"))
         .node();
-
-      console.log(path);
 
       const tangent = tangentAt(path, path.getTotalLength() * offset);
 
@@ -272,8 +255,6 @@ window.centerline = (function centerlineIIFE() {
       
       return bbox;
     })();
-
-    console.log(bbox);
 
     const widthPerPixel = bbox.width / 100
 
