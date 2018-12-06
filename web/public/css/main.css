@@ -74,3 +74,45 @@ path:hover {
     padding: 0 32px;
     margin: 8px 0;
 }
+
+.legend-card-container {
+	position: fixed;
+	left: 23px;
+    bottom: 23px;
+    height: 22.5rem;
+    width: 15rem;
+    z-index: 997;
+    opacity: 0;
+    transition: opacity 1s;
+}
+
+.legend-card-container.fade {
+    opacity: 1;
+}
+
+.legend-card-container > .card {
+    height: 100%;
+    width: 100%;
+}
+
+.legend-card-container .card-title {
+    font-variant: small-caps;
+}
+
+.legend-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.legend-list > div {
+    padding-top: 0.2rem;
+}
+
+.selection-container {
+    padding-top: 0.5rem;
+}
+
+.selection-container > .selection-title {
+    font-variant: small-caps;
+    font-size: 1.25rem;
+}
