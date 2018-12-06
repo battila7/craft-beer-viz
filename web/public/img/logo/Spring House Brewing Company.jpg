@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Patch.com - GDPR</title>
+    <style>
+
+        body {
+            font: 26px/1.6 Georgia, "Times New Roman", Times, serif;
+            text-align:center;
+            margin:0;
+        }
+        .header {
+            padding:0;
+            height:50px;
+            border-bottom:1px solid #ccc;
+            background:url(//cdn.patchcdn.com/assets/layout/logo-patch-800x600.png) no-repeat 50% 50%;
+            background-size:102px auto;
+        }
+
+        p.copy {
+            margin:15px auto;
+            max-width:900px;
+            padding:0 20px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="header">
+
+</div>
+<p class="copy">Hello! Patch is currently unavailable in most European locations.</p>
+<p class="copy">We are working on a technical compliance solution, and hope to be able to provide our local journalism offerings to EU readers soon.</p>
+<p class="copy">&#8212;The Patch Team</p>
+
+</body>
+</html>
