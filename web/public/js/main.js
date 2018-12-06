@@ -2,30 +2,61 @@
  * Original map drawing and us-states.json by Michelle Chandra:
  *   http://bl.ocks.org/michellechandra/0b2ce4923dc9b5809922
  */
+
+document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.tap-target');
+    var instances = M.TapTarget.init(elems, { isOpen: true });
+    instances[0].open();
+
+    var elems = document.querySelectorAll('.sidenav');
+    var instances = M.Sidenav.init(elems, {
+        edge: 'right'
+    });
+});
 (async function mainIIFE() {
-    const SVG_WIDTH = 960;
-    const SVG_HEIGHT = 500;
+    const State = {
+        data: {},
+        elements: {}
+    };
+
+    createMainMap();
+
+    const { height, width } = document.querySelector('.us-map > svg').getClientRects()[0];
 
     // Translate to center of screen and scale down to see the entire US.
     const projection = d3.geoAlbersUsa()
-        .translate([SVG_WIDTH / 2, SVG_HEIGHT / 2])
-        .scale([1000]);
+        .translate([width / 2, height / 2])
+        .scale([width]);
             
     const path = d3.geoPath().projection(projection);
 
-    const svg = d3.select('body')
-        .append('svg')
-        .attr('width', SVG_WIDTH)
-        .attr('height', SVG_HEIGHT);
+    await loadMapGeometry();
 
-    const statesPolygons = await fetch('data/us-states.json').then(response => response.json());
-
-    svg.selectAll('path')
-        .data(statesPolygons.features)
+    State.elements.mainMap.selectAll('path')
+        .data(State.data.geometry.features)
         .enter()
         .append('path')
         .attr('d', path)
         .style('stroke', '#fff')
         .style('stroke-width', '1')
         .style('fill', 'rgb(213,222,217)');
+
+    function createMainMap() {
+        State.elements.mainMap = d3.select('.us-map')
+            .append('svg')
+            .attr('width', '100%')
+            .attr('height', '100%');
+    }
+
+    function loadDataset() {
+        return fetch('data/dataset.json')
+            .then(response => response.json())
+            .then(dataset => State.data.dataset = dataset);
+    };
+
+    function loadMapGeometry() {
+        return fetch('data/us-states.json')
+            .then(response => response.json())
+            .then(a => State.data.geometry = a);
+    };
 })();

@@ -10,12 +10,73 @@
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.css">
   <link rel="stylesheet" href="css/main.css">
+
+  <!-- Compiled and minified CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,600" rel="stylesheet"> 
+
+  <!-- Compiled and minified JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </head>
 
 <body>
+  <div class="us-map">
+  </div>
+  
+  <div class="fixed-action-btn">
+    <a id="menu-button" class="btn-floating btn-large red sidenav-trigger" data-target="slide-out">
+      <i class="large material-icons">menu</i>
+    </a>
+  </div>
+
+  <div class="tap-target" data-target="menu-button">
+    <div class="tap-target-content">
+      <h3>Hey!</h3>
+      <p>
+          You must be new here, pal! To get your head around this viz, click this <b>shiny</b> little button!
+      </p>
+    </div>
+  </div>
+
+  <ul id="slide-out" class="sidenav">
+    <li>
+      <div class="menu-header">
+        <div class="title">
+          <div>Craft</div>
+          <div>Beer</div>
+          <div>Viz</div>
+        </div>
+      </div>
+    </li>
+
+    <li>
+      <div class="info-text">
+          To choose what data to visualize on the main map, click the Visualization Mode button below.
+      </div>
+    </li>
+    <li>
+      <a href=""><i class="material-icons">style</i>Visualization Mode</a>
+    </li>
+
+    <li>
+      <div class="divider"></div>
+    </li>
+
+    <li>
+      <div class="info-text">
+          If you're not sure, what's what, click the Help button below.
+      </div>
+    </li>
+    <li>
+      <a href=""><i class="material-icons">help</i>Help</a>
+    </li>
+    
+  </ul>
+        
   <script src="https://d3js.org/d3.v5.min.js"></script>
   <script src="js/main.js"></script>
 </body>
-
 </html>
