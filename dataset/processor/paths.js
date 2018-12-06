@@ -12,9 +12,11 @@ module.exports = {
 
     nationalities: inOriginalDirectory('nationality-map.json'),
     types: inOriginalDirectory('type-map.json'),
+    states: inOriginalDirectory('state-map.json'),
 
     toJson: inOutputDirectory('01-to-json.json'),
     geocoder: inOutputDirectory('02-geocoder.json'),
     beerIntoBrewery: inOutputDirectory('03-beer-into-brewery.json'),
-    nationalityAndType: inOutputDirectory('04-nationality-and-type.json')
+    nationalityAndType: inOutputDirectory('04-nationality-and-type.json'),
+    aggregate: inOutputDirectory('05-aggregate.json')
 };
