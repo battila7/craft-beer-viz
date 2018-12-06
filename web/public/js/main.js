@@ -3,53 +3,98 @@
  *   http://bl.ocks.org/michellechandra/0b2ce4923dc9b5809922
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-    var elems = document.querySelectorAll('.tap-target');
-    var instances = M.TapTarget.init(elems, { isOpen: true });
-    instances[0].open();
-
-    var elems = document.querySelectorAll('.sidenav');
-    var instances = M.Sidenav.init(elems, {
-        edge: 'right'
-    });
-
-    var elems = document.querySelectorAll('.modal');
-    var instances = M.Modal.init(elems, {});
-
-    var elem = document.querySelector('.viz-mode-modal-trigger');
-    elem.addEventListener('click', function () {
-        var elems = document.querySelectorAll('.sidenav');
-        var instance = M.Sidenav.getInstance(elems[0]);
-        instance.close();
-
-        var elem = document.getElementById('viz-mode-modal');
-        var instance = M.Modal.getInstance(elem);
-        instance.open();
-    });
-});
 (async function mainIIFE() {
     const State = {
         data: {},
         elements: {}
     };
 
-    createMainMap();
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeMaterializeElements();
+    });
 
-    const { height, width } = document.querySelector('.us-map > svg').getClientRects()[0];
+    async function setupMainMap() {
+        State.elements.mainMap = d3.select('.us-map')
+            .append('svg')
+            .attr('width', '100%')
+            .attr('height', '100%');
 
-    // Translate to center of screen and scale down to see the entire US.
-    const projection = d3.geoAlbersUsa()
-        .translate([width / 2, height / 2])
-        .scale([width]);
-            
-    const path = d3.geoPath().projection(projection);
+        const { height, width } = document.querySelector('.us-map > svg').getClientRects()[0];
 
-    await loadMapGeometry();
-    await loadDataset();
+        const projection =  d3.geoAlbersUsa()
+            .translate([width / 2, height / 2])
+            .scale([width]);
 
-    drawStates();
+        const path = d3.geoPath().projection(projection);
 
-    function drawStates() {
+        State.mainMap = {
+            height, 
+            width,
+            projection,
+            path
+        };
+
+        await loadMapGeometry;
+    }
+
+    function initializeMaterializeElements() {
+        const firstUseTapTarget = document.querySelector('.tap-target');
+        M.TapTarget.init(firstUseTapTarget, {});
+    
+        const sidenav = document.querySelector('.sidenav');
+        M.Sidenav.init(sidenav, {
+            edge: 'right'
+        });
+    
+        const modals = document.querySelectorAll('.modal');
+        M.Modal.init(modals, {});
+    
+        document.querySelector('.viz-mode-modal-trigger').addEventListener('click', function vizModeModalTriggerClick() {
+            const sidenav = document.querySelector('.sidenav');
+            M.Sidenav.getInstance(sidenav).close();
+    
+            const modal = document.getElementById('viz-mode-modal');
+            M.Modal.getInstance(modal).open();
+        });
+    }
+
+    function initializeMainMapVizModeTriggers() {
+        setupMainMapColorViz({
+            triggerSelector: '.number-of-beers-action',
+            legendEntries: [
+                { value: 0.0, text: 'No beers at all.' },
+                { value: 0.5, text: 'Moderate number of beers.' },
+                { value: 1.0, text: 'Tons of beers.' }
+            ],
+            legendDescription: 'The color indicates the number of beers.',
+            propertyName: 'numberOfBeers',
+            selectionValue: (value) => `Number of beers: ${value}`
+        });
+
+        setupMainMapColorViz({
+            triggerSelector: '.number-of-breweries-action',
+            legendEntries: [
+                { value: 0.0, text: 'No breweries at all.' },
+                { value: 0.5, text: 'Moderate number of breweries.' },
+                { value: 1.0, text: 'Tons of breweries.' }
+            ],
+            legendDescription: 'The color indicates the number of breweries.',
+            propertyName: 'numberOfBreweries',
+            selectionValue: (value) => `Number of breweries: ${value}`
+        });
+
+        setupMainMapLabelViz({
+            triggerSelector: '.most-popular-nationality-action',
+            propertyName: 'mostPopularNationality'
+        });
+
+        setupMainMapLabelViz({
+            triggerSelector: '.most-popular-type-action',
+            propertyName: 'mostPopularType'
+        });
+    }
+
+    function resetMainMap() {
         while (State.elements.mainMap.firstChild) {
             State.elements.mainMap.removeChild(State.elements.mainMap.firstChild);
         }
@@ -63,126 +108,69 @@ document.addEventListener('DOMContentLoaded', function() {
             .style('stroke-width', '1')
             .style('fill', 'rgb(213,222,217)');
     }
+
+    function setupMainMapColorViz(options) {
+        document.querySelector(options.triggerSelector).addEventListener('click', function() {
+            const vizModeModal = document.getElementById('viz-mode-modal');
+            M.Modal.getInstance(vizModeModal).close();
     
+            const legendCardContainer = document.querySelector('.legend-card-container');
+    
+            legendCardContainer.classList.add('fade');
 
-    document.querySelector('.number-of-breweries-action').addEventListener('click', function() {
-        var elem = document.getElementById('viz-mode-modal');
-        var instance = M.Modal.getInstance(elem);
-        instance.close();
+            const legendEntries = options.legendEntries.map(({ value, text }) => ({ color: interpolateColor(value), text }));
+    
+            initializeLegendPanel(options.legendDescription, legendEntries);
 
-        var elem = document.querySelector('.legend-card-container');
-
-        elem.classList.add('fade');
-        const legs = [
-            { color: interpolateColor(0), text: 'No breweries at all.' },
-            { color: interpolateColor(0.5), text: 'Moderate number of breweries.' },
-            { color: interpolateColor(1), text: 'Tons of breweries.' }
-        ];
-
-        initializeLegendPanel("The color indicates the number of breweries.", legs);
-        unsetLegendSelection();
-
-        let max = 0;
-        for (const state of Object.values(State.data.dataset.state.aggregate)) {
-            if (state.numberOfBreweries > max) {
-                max = state.numberOfBreweries;
-            }
-        }
-
-        drawStates();
-
-        State.elements.mainMap.selectAll('path')
-            .style('fill', function (d) {
-                const abbreviation = State.data.dataset.inverseStateMap[d.properties.name];
-                const state = State.data.dataset.state.aggregate[abbreviation];
-
-                if (!state) {
-                    return interpolateColor(0);
+            unsetLegendSelection();
+    
+            let max = 0;
+            for (const state of Object.values(State.data.dataset.state.aggregate)) {
+                if (state[options.propertyName] > max) {
+                    max = state[options.propertyName]
                 }
-
-                return interpolateColor(state.numberOfBreweries / max);
-            })
-            .on('mouseover', function(d) {
-                const abbreviation = State.data.dataset.inverseStateMap[d.properties.name];
-                const state = State.data.dataset.state.aggregate[abbreviation];
-
-                setLegendSelection(`State: ${state.name}`, `Number of Breweries: ${state.numberOfBreweries}`);
-            })
-            .on('mouseleave', function() {
-                unsetLegendSelection();
-            })
-    });
-
-    document.querySelector('.number-of-beers-action').addEventListener('click', function() {
-        var elem = document.getElementById('viz-mode-modal');
-        var instance = M.Modal.getInstance(elem);
-        instance.close();
-
-        var elem = document.querySelector('.legend-card-container');
-
-        elem.classList.add('fade');
-        const legs = [
-            { color: interpolateColor(0), text: 'No beers at all.' },
-            { color: interpolateColor(0.5), text: 'Moderate number of beers.' },
-            { color: interpolateColor(1), text: 'Tons of beers.' }
-        ];
-
-        initializeLegendPanel("The color indicates the number of beers.", legs);
-        unsetLegendSelection();
-
-        let max = 0;
-        for (const state of Object.values(State.data.dataset.state.aggregate)) {
-            if (state.numberOfBeers > max) {
-                max = state.numberOfBeers;
             }
-        }
-
-        drawStates();
-
-        State.elements.mainMap.selectAll('path')
-            .style('fill', function (d) {
-                const abbreviation = State.data.dataset.inverseStateMap[d.properties.name];
-                const state = State.data.dataset.state.aggregate[abbreviation];
-
-                if (!state) {
-                    return interpolateColor(0);
-                }
-
-                return interpolateColor(state.numberOfBeers / max);
-            })
-            .on('mouseover', function(d) {
-                const abbreviation = State.data.dataset.inverseStateMap[d.properties.name];
-                const state = State.data.dataset.state.aggregate[abbreviation];
-
-                setLegendSelection(`State: ${state.name}`, `Number of Beers: ${state.numberOfBeers}`);
-            })
-            .on('mouseleave', function() {
-                unsetLegendSelection();
-            })
-    });
-
-    document.querySelector('.most-popular-type-action').addEventListener('click', function() {
-        var elem = document.getElementById('viz-mode-modal');
-        var instance = M.Modal.getInstance(elem);
-        instance.close();
-
-        var elem = document.querySelector('.legend-card-container');
-
-        elem.classList.remove('fade');
-
-        drawStates();
-
-        State.elements.mainMap.selectAll('path')
-            .style('fill', 'rgb(213,222,217)')
-            .on('mouseover', () => void 0)
-            .on('mouseleave', () => void 0);
-
-        (function doTheThang() {
-            const elem = document.querySelector('.us-map > svg');
     
-            let index = 0;
+            resetMainMap();
     
-            State.data.geometry.features.forEach(feature => {
+            State.elements.mainMap.selectAll('path')
+                .style('fill', function (d) {
+                    const abbreviation = State.data.dataset.inverseStateMap[d.properties.name];
+                    const state = State.data.dataset.state.aggregate[abbreviation];
+    
+                    if (!state) {
+                        return interpolateColor(0);
+                    }
+    
+                    return interpolateColor(state[options.propertyName] / max);
+                })
+                .on('mouseover', function(d) {
+                    const abbreviation = State.data.dataset.inverseStateMap[d.properties.name];
+                    const state = State.data.dataset.state.aggregate[abbreviation];
+    
+                    setLegendSelection(`State: ${state.name}`, selectionValue(state[options.propertyName]));
+                })
+                .on('mouseleave', function() {
+                    unsetLegendSelection();
+                })
+        });
+    }
+
+    function setupMainMapLabelViz(options) {
+        document.querySelector(options.triggerSelector).addEventListener('click', function() {
+            const vizModeModal = document.getElementById('viz-mode-modal');
+            M.Modal.getInstance(vizModeModal).close();
+    
+            const legendCardContainer = document.querySelector('.legend-card-container');
+    
+            legendCardContainer.classList.remove('fade');
+            unsetLegendSelection();
+    
+            resetMainMap();
+
+            const mainMapSvg = document.querySelector('.us-map > svg');
+    
+            State.data.geometry.features.forEach((feature, index) => {
                 if (['Puerto Rico', 'Hawaii', 'Maryland'].includes(feature.properties.name)) {
                     return;
                 }
@@ -194,62 +182,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                const text = state.mostPopularType;
+                let text;
+                if (options.propertyName == 'mostPopularNationality') {
+                    text = State.data.dataset.nationalityNameMap[state[options.propertyName]];
+                } else {
+                    text = state[options.propertyName];
+                }                
     
-                const cl = centerline.computeCenterline(feature, projection, width, height, feature.properties.name);
-                const label = centerline.placeTextAlongCenterline(cl, feature, projection, `pa${index}`, width, height, text);
+                const cl = centerline.computeCenterline(feature, 
+                        State.mainMap.projection,
+                        State.mainMap.width,
+                        State.mainMap.height);
+
+                const label = centerline.placeTextAlongCenterline(cl, 
+                        feature, 
+                        State.mainMap.projection, 
+                        State.mainMap.width,
+                        State.mainMap.height,
+                        `pa${index}`,
+                        text);
     
-                elem.innerHTML += label;
-    
-                index++;
+                mainMapSvg.innerHTML += label;
             });
-        })();
-    });
-
-    document.querySelector('.most-popular-nationality-action').addEventListener('click', function() {
-        var elem = document.getElementById('viz-mode-modal');
-        var instance = M.Modal.getInstance(elem);
-        instance.close();
-
-        var elem = document.querySelector('.legend-card-container');
-
-        elem.classList.remove('fade');
-
-        drawStates();
-
-        State.elements.mainMap.selectAll('path')
-            .style('fill', 'rgb(213,222,217)')
-            .on('mouseover', () => void 0)
-            .on('mouseleave', () => void 0);
-
-        (function doTheThang() {
-            const elem = document.querySelector('.us-map > svg');
-    
-            let index = 0;
-    
-            State.data.geometry.features.forEach(feature => {
-                if (['Puerto Rico', 'Hawaii', 'Maryland'].includes(feature.properties.name)) {
-                    return;
-                }
-
-                const abbreviation = State.data.dataset.inverseStateMap[feature.properties.name];
-                const state = State.data.dataset.state.aggregate[abbreviation];
-
-                if (!state) {
-                    return;
-                }
-
-                const text = State.data.dataset.nationalityNameMap[state.mostPopularNationality];
-    
-                const cl = centerline.computeCenterline(feature, projection, width, height, feature.properties.name);
-                const label = centerline.placeTextAlongCenterline(cl, feature, projection, `pa${index}`, width, height, text);
-    
-                elem.innerHTML += label;
-    
-                index++;
-            });
-        })();
-    });
+        });
+    }
 
     function setLegendSelection(name, value) {
         const nameElement = document.querySelector('.selection-name');
@@ -306,13 +262,6 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    function createMainMap() {
-        State.elements.mainMap = d3.select('.us-map')
-            .append('svg')
-            .attr('width', '100%')
-            .attr('height', '100%');
-    }
-
     function loadDataset() {
         return fetch('data/dataset.json')
             .then(response => response.json())
@@ -336,3 +285,4 @@ document.addEventListener('DOMContentLoaded', function() {
         return `rgb(${r} ${g} ${b})`;
     }
 })();
+

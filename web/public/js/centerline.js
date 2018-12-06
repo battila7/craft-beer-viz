@@ -224,7 +224,7 @@ window.centerline = (function centerlineIIFE() {
     return d3.line().curve(d3.curveBasis)(flipText ? simplifiedLine.slice(0).reverse() : simplifiedLine);
   }
 
-  function placeTextAlongCenterline(centerline, feature, projection, id, width, height, labeltext) {
+  function placeTextAlongCenterline(centerline, feature, projection, width, height, id, labeltext) {
     const measurementStep = 5;
     const offset = 0.5;
     const numPerimeterPoints = 50;
