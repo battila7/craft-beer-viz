@@ -10,6 +10,13 @@ const paths = require('./paths');
     const types = Object.keys(typeMap);
     const stateMap = await readAsJSON(paths.states);
 
+    const inverseStateMap = {};
+
+    Object.keys(stateMap)
+        .forEach(abbreviation => {
+            inverseStateMap[stateMap[abbreviation]] = abbreviation;
+        });
+
     const beers = document
         .map(brewery => {
             brewery.beers.forEach(beer => beer.state = brewery.state);
@@ -34,7 +41,8 @@ const paths = require('./paths');
         style: calculateStyleAggregates(beers, typeMap),
         typeMap,
         nationalityMap,
-        stateMap
+        stateMap,
+        inverseStateMap
     };
 
     writeFile(paths.aggregate, JSON.stringify(result));
