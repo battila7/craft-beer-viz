@@ -47,6 +47,9 @@ document.addEventListener('DOMContentLoaded', function() {
     await loadMapGeometry();
     await loadDataset();
 
+    console.log(State.data.geometry.features[0].geometry.coordinates[0])
+    console.log(State.data.geometry.features[0].geometry.coordinates[0].map(projection));
+
     State.elements.mainMap.selectAll('path')
         .data(State.data.geometry.features)
         .enter()
@@ -55,6 +58,26 @@ document.addEventListener('DOMContentLoaded', function() {
         .style('stroke', '#fff')
         .style('stroke-width', '1')
         .style('fill', 'rgb(213,222,217)');
+
+    (function doTheThang() {
+        const elem = document.querySelector('.us-map > svg');
+
+        let index = 0;
+
+        State.data.geometry.features.forEach(feature => {
+            if (['Puerto Rico', 'Hawaii', 'Maryland'].includes(feature.properties.name)) {
+                return;
+            }
+
+            const cl = centerline(feature, projection, `pa${index}`, width, height, feature.properties.name);
+
+            elem.innerHTML += cl;
+
+            index++;
+        });
+    })();
+
+    
 
     document.querySelector('.number-of-breweries-action').addEventListener('click', function() {
         var elem = document.getElementById('viz-mode-modal');
@@ -146,6 +169,21 @@ document.addEventListener('DOMContentLoaded', function() {
             .on('mouseleave', function() {
                 unsetLegendSelection();
             })
+    });
+
+    document.querySelector('.most-popular-type-action').addEventListener('click', function() {
+        var elem = document.getElementById('viz-mode-modal');
+        var instance = M.Modal.getInstance(elem);
+        instance.close();
+
+        var elem = document.querySelector('.legend-card-container');
+
+        elem.classList.remove('fade');
+
+        State.elements.mainMap.selectAll('path')
+            .style('fill', 'rgb(213,222,217)')
+            .on('mouseover', () => void 0)
+            .on('mouseleave', () => void 0);
     });
 
     function setLegendSelection(name, value) {
