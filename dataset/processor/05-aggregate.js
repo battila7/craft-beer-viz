@@ -37,7 +37,7 @@ const paths = require('./paths');
         stateMap
     };
 
-    writeFile(paths.aggregate + '.json', JSON.stringify(result, null, 2));
+    writeFile(paths.aggregate, JSON.stringify(result));
 })();
 
 function readAsJSON(path) {
