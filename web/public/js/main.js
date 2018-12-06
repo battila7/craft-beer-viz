@@ -47,34 +47,22 @@ document.addEventListener('DOMContentLoaded', function() {
     await loadMapGeometry();
     await loadDataset();
 
-    State.elements.mainMap.selectAll('path')
-        .data(State.data.geometry.features)
-        .enter()
-        .append('path')
-        .attr('d', path)
-        .style('stroke', '#fff')
-        .style('stroke-width', '1')
-        .style('fill', 'rgb(213,222,217)');
+    drawStates();
 
-    (function doTheThang() {
-        const elem = document.querySelector('.us-map > svg');
+    function drawStates() {
+        while (State.elements.mainMap.firstChild) {
+            State.elements.mainMap.removeChild(State.elements.mainMap.firstChild);
+        }
 
-        let index = 0;
-
-        State.data.geometry.features.forEach(feature => {
-            if (['Puerto Rico', 'Hawaii', 'Maryland'].includes(feature.properties.name)) {
-                return;
-            }
-
-            const cl = centerline.computeCenterline(feature, projection, width, height, feature.properties.name);
-            const label = centerline.placeTextAlongCenterline(cl, feature, projection, `pa${index}`, width, height, feature.properties.name);
-
-            elem.innerHTML += label;
-
-            index++;
-        });
-    })();
-
+        State.elements.mainMap.selectAll('path')
+            .data(State.data.geometry.features)
+            .enter()
+            .append('path')
+            .attr('d', path)
+            .style('stroke', '#fff')
+            .style('stroke-width', '1')
+            .style('fill', 'rgb(213,222,217)');
+    }
     
 
     document.querySelector('.number-of-breweries-action').addEventListener('click', function() {
@@ -100,6 +88,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 max = state.numberOfBreweries;
             }
         }
+
+        drawStates();
 
         State.elements.mainMap.selectAll('path')
             .style('fill', function (d) {
@@ -147,6 +137,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        drawStates();
+
         State.elements.mainMap.selectAll('path')
             .style('fill', function (d) {
                 const abbreviation = State.data.dataset.inverseStateMap[d.properties.name];
@@ -178,10 +170,85 @@ document.addEventListener('DOMContentLoaded', function() {
 
         elem.classList.remove('fade');
 
+        drawStates();
+
         State.elements.mainMap.selectAll('path')
             .style('fill', 'rgb(213,222,217)')
             .on('mouseover', () => void 0)
             .on('mouseleave', () => void 0);
+
+        (function doTheThang() {
+            const elem = document.querySelector('.us-map > svg');
+    
+            let index = 0;
+    
+            State.data.geometry.features.forEach(feature => {
+                if (['Puerto Rico', 'Hawaii', 'Maryland'].includes(feature.properties.name)) {
+                    return;
+                }
+
+                const abbreviation = State.data.dataset.inverseStateMap[feature.properties.name];
+                const state = State.data.dataset.state.aggregate[abbreviation];
+
+                if (!state) {
+                    return;
+                }
+
+                const text = state.mostPopularType;
+    
+                const cl = centerline.computeCenterline(feature, projection, width, height, feature.properties.name);
+                const label = centerline.placeTextAlongCenterline(cl, feature, projection, `pa${index}`, width, height, text);
+    
+                elem.innerHTML += label;
+    
+                index++;
+            });
+        })();
+    });
+
+    document.querySelector('.most-popular-nationality-action').addEventListener('click', function() {
+        var elem = document.getElementById('viz-mode-modal');
+        var instance = M.Modal.getInstance(elem);
+        instance.close();
+
+        var elem = document.querySelector('.legend-card-container');
+
+        elem.classList.remove('fade');
+
+        drawStates();
+
+        State.elements.mainMap.selectAll('path')
+            .style('fill', 'rgb(213,222,217)')
+            .on('mouseover', () => void 0)
+            .on('mouseleave', () => void 0);
+
+        (function doTheThang() {
+            const elem = document.querySelector('.us-map > svg');
+    
+            let index = 0;
+    
+            State.data.geometry.features.forEach(feature => {
+                if (['Puerto Rico', 'Hawaii', 'Maryland'].includes(feature.properties.name)) {
+                    return;
+                }
+
+                const abbreviation = State.data.dataset.inverseStateMap[feature.properties.name];
+                const state = State.data.dataset.state.aggregate[abbreviation];
+
+                if (!state) {
+                    return;
+                }
+
+                const text = State.data.dataset.nationalityNameMap[state.mostPopularNationality];
+    
+                const cl = centerline.computeCenterline(feature, projection, width, height, feature.properties.name);
+                const label = centerline.placeTextAlongCenterline(cl, feature, projection, `pa${index}`, width, height, text);
+    
+                elem.innerHTML += label;
+    
+                index++;
+            });
+        })();
     });
 
     function setLegendSelection(name, value) {
