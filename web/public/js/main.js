@@ -12,10 +12,12 @@
     document.addEventListener('DOMContentLoaded', function() {
         initializeMaterializeElements();
 
+        initializeMainMapVizModeTriggers();
+
         if (askForCookiePermission()) {
             openCookieModal();
         } else {
-            
+            openPreloadingModal();
         }
     });
 
@@ -28,6 +30,65 @@
         const instance = M.Modal.getInstance(cookieModal);
         instance.options.dismissible = false;
         instance.open();
+    }
+
+    function openPreloadingModal() {
+        const preloadingModal = document.querySelector('.preloading-modal');
+        const instance = M.Modal.getInstance(preloadingModal);
+        instance.options.dismissible = false;
+        instance.open();
+
+        (function preloadingAnimation() {
+            const getText = function getText() {
+                let counter = 0;
+
+                return function() {
+                    counter = (counter + 1) % 4;
+
+                    return `Preloading${'.'.repeat(counter)}`;
+                }
+            }();
+
+            const adjustTitle = function adjustTitle() {
+                document.querySelector('.preloading-header > .title').textContent = getText();
+            };
+
+            State.preloadingAnimation =  setInterval(adjustTitle, 500);
+        })();
+
+        setTimeout(preload, 1);
+    }
+
+    function closePreloadingModal() {
+        clearInterval(State.preloadingAnimation);
+
+        const preloadingModal = document.querySelector('.preloading-modal');
+        M.Modal.getInstance(preloadingModal).close();
+    }
+
+    async function preload() {
+        setupMainMap();
+
+        State.preloadingWorker = new Worker('js/preloading-worker.js');
+
+        State.preloadingWorker.postMessage({
+            height: State.mainMap.height,
+            width: State.mainMap.width,
+            scale: State.mainMap.scale
+        });
+
+        State.preloadingWorker.onmessage = function onMessage(message) {
+            State.data = message.data.data;
+            State.centerlines = message.data.centerlines;
+
+            endPreload();
+        }
+    }
+
+    async function endPreload() {
+        closePreloadingModal();
+
+        resetMainMap();
     }
 
     async function setupMainMap() {
@@ -47,11 +108,10 @@
         State.mainMap = {
             height, 
             width,
+            scale: width,
             projection,
             path
         };
-
-        await loadMapGeometry;
     }
 
     function initializeMaterializeElements() {
@@ -81,6 +141,7 @@
         document.querySelector('.cookie-okay').addEventListener('click', function cookieOnClick() {
             const cookieModal = document.querySelector('.cookie-modal');
             M.Modal.getInstance(cookieModal).close();
+            openPreloadingModal();
         })
     }
 
@@ -121,15 +182,17 @@
     }
 
     function resetMainMap() {
-        while (State.elements.mainMap.firstChild) {
-            State.elements.mainMap.removeChild(State.elements.mainMap.firstChild);
+        const mp = document.querySelector('.us-map > svg');
+
+        while (mp.firstChild) {
+            mp.removeChild(mp.firstChild);
         }
 
         State.elements.mainMap.selectAll('path')
             .data(State.data.geometry.features)
             .enter()
             .append('path')
-            .attr('d', path)
+            .attr('d', State.mainMap.path)
             .style('stroke', '#fff')
             .style('stroke-width', '1')
             .style('fill', 'rgb(213,222,217)');
@@ -149,6 +212,8 @@
             initializeLegendPanel(options.legendDescription, legendEntries);
 
             unsetLegendSelection();
+
+            resetMainMap();
     
             let max = 0;
             for (const state of Object.values(State.data.dataset.state.aggregate)) {
@@ -156,8 +221,6 @@
                     max = state[options.propertyName]
                 }
             }
-    
-            resetMainMap();
     
             State.elements.mainMap.selectAll('path')
                 .style('fill', function (d) {
@@ -174,7 +237,7 @@
                     const abbreviation = State.data.dataset.inverseStateMap[d.properties.name];
                     const state = State.data.dataset.state.aggregate[abbreviation];
     
-                    setLegendSelection(`State: ${state.name}`, selectionValue(state[options.propertyName]));
+                    setLegendSelection(`State: ${state.name}`, options.selectionValue(state[options.propertyName]));
                 })
                 .on('mouseleave', function() {
                     unsetLegendSelection();
@@ -214,13 +277,8 @@
                 } else {
                     text = state[options.propertyName];
                 }                
-    
-                const cl = centerline.computeCenterline(feature, 
-                        State.mainMap.projection,
-                        State.mainMap.width,
-                        State.mainMap.height);
 
-                const label = centerline.placeTextAlongCenterline(cl, 
+                const label = centerline.placeTextAlongCenterline(State.centerlines[feature.properties.name], 
                         feature, 
                         State.mainMap.projection, 
                         State.mainMap.width,

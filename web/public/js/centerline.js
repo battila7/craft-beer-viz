@@ -1,4 +1,4 @@
-window.centerline = (function centerlineIIFE() {
+centerline = (function centerlineIIFE() {
   function fitnessFunction(path, length) {
     let fitness = length;
 
@@ -86,13 +86,12 @@ window.centerline = (function centerlineIIFE() {
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  function simplify(points) {
+  function smplf(points) {
     // Convert from [x, y] to { x, y } and back for simplify-js
-    return window.simplify(points.map(p => ({ x: p[0], y: p[1] })), 8).map(p => [p.x, p.y]);
+    return simplify(points.map(p => ({ x: p[0], y: p[1] })), 8).map(p => [p.x, p.y]);
   }
 
-  function computeCenterline(feature, projection, width, height) {
-    const offset = 0.5;
+  function computeCenterline(feature, projection) {
     const numPerimeterPoints = 50;
 
     let outerRing;
@@ -203,7 +202,13 @@ window.centerline = (function centerlineIIFE() {
       }
     })();
 
-    const simplifiedLine = simplify(traversal.bestPath)
+    return smplf(traversal.bestPath)
+  }
+
+  function placeTextAlongCenterline(simplifiedLine, feature, projection, width, height, id, labeltext) {
+    const measurementStep = 5;
+    const offset = 0.5;
+    const numPerimeterPoints = 50;
 
     const flipText = (function () {
       var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -221,13 +226,7 @@ window.centerline = (function centerlineIIFE() {
       return Math.abs(tangent) > Math.PI / 2;
     })();
 
-    return d3.line().curve(d3.curveBasis)(flipText ? simplifiedLine.slice(0).reverse() : simplifiedLine);
-  }
-
-  function placeTextAlongCenterline(centerline, feature, projection, width, height, id, labeltext) {
-    const measurementStep = 5;
-    const offset = 0.5;
-    const numPerimeterPoints = 50;
+    const centerline = d3.line().curve(d3.curveBasis)(flipText ? simplifiedLine.slice(0).reverse() : simplifiedLine);
 
     let outerRing;
 
