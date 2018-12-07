@@ -164,10 +164,23 @@ function calculateStateAggregates(beers, breweries, states, typeMap, nationaliti
         const stateBreweries = breweries.filter(brewery => brewery.state == state);
         let stateCities = 
             stateBreweries
-                .map(brewery => brewery.location)
+                .map(brewery => Object.assign({}, brewery.location, { breweries: [] }))
                 .filter((value, index, self) => {
                     return self.findIndex(other => other.lat == value.lat && other.lng == value.lng) == index;
-                });
+                })
+                .sort((a, b) => a.city.localeCompare(b.city));
+
+        stateBreweries.forEach(brewery => {
+            const city = stateCities.find(c => c.city == brewery.location.city)
+
+            if (city) {
+                city.breweries.push(brewery);
+            }
+        })
+
+        stateCities.forEach(city => {
+            city.breweries.sort((a, b) => a.name.localeCompare(b.name));
+        });
 
         result.aggregate[state] = {
             name: stateMap[state],
