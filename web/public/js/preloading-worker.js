@@ -31,6 +31,8 @@ async function main({ height, width, scale }) {
             .scale([scale]);
 
         State.data.geometry.features.forEach(feature => {
+            return;
+
             if (['Puerto Rico', 'Hawaii', 'Maryland'].includes(feature.properties.name)) {
                 return;
             }

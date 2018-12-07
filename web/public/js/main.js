@@ -204,6 +204,51 @@
         });
     }
 
+    function showDetailsView(d, state) {
+        const detailsOverlay = document.querySelector('.details-overlay');
+        detailsOverlay.classList.add('fade');
+
+        const detailsSidebar = document.querySelector('.details-sidebar');
+        detailsSidebar.classList.add('slide');
+
+        const detailsFigure = document.querySelector('.details-figure');
+        detailsFigure.classList.add('fade');
+
+        const mp = d3.select('.details-figure > .map-container')
+            .append('svg')
+            .attr('width', '75%')
+            .attr('height', '100%');
+
+        const { height, width } = document.querySelector('.map-container > svg').getClientRects()[0];
+
+        const projection = d3
+            .geoAlbersUsa()
+            .fitExtent([[5, 5], [width - 5, height - 5]], d);
+
+        const path = d3.geoPath().projection(projection);
+
+        console.log(state);
+
+        mp.append('path')
+            .attr('d', path(d))
+            .style('stroke', '#fff')
+            .style('stroke-width', '1')
+            .style('fill', 'rgb(213,222,217)');
+
+        mp.selectAll('circle')
+            .data(state.cities)
+            .enter()
+            .append('circle')
+            .attr('r', '5')
+            .attr('cx', function cx({ lat, lng }) {
+                return projection([lng, lat])[0];
+            })
+            .attr('cy', function cx({ lat, lng }) {
+                return projection([lng, lat])[1];
+            })
+            .style('fill', 'rgb(255, 68, 51)');
+    }
+
     function resetMainMap() {
         const mp = document.querySelector('.us-map > svg');
 
@@ -218,7 +263,13 @@
             .attr('d', State.mainMap.path)
             .style('stroke', '#fff')
             .style('stroke-width', '1')
-            .style('fill', 'rgb(213,222,217)');
+            .style('fill', 'rgb(213,222,217)')
+            .on('click', function(d) {
+                const abbreviation = State.data.dataset.inverseStateMap[d.properties.name];
+                const state = State.data.dataset.state.aggregate[abbreviation];
+
+                showDetailsView(d, state);
+            })
     }
 
     function setupMainMapColorViz(options) {

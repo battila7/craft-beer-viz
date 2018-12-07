@@ -16,7 +16,7 @@ svg {
 }
 
 /* On mouse hover, lighten state color */
-path:hover {
+.us-map path:hover {
     fill-opacity: .7;
 }
 
@@ -169,4 +169,81 @@ path:hover {
     margin: 0;
     padding: 0;
     overflow: hidde;
+}
+
+.details-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 120vh;
+    background-color:rgba(0,0,0,0.7);
+    z-index: 997;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 1s;
+}
+
+.details-overlay.fade {
+    visibility: visible;
+    opacity: 1;
+}
+
+.details-sidebar {
+    position: fixed;
+    width: 40%;
+    right: 0;
+    left: auto;
+    top: 0;
+    margin: 0;
+    transform: translateX(100%);
+    height: 100%;
+    height: calc(100% + 60px);
+    padding-bottom: 60px;
+    background-color: #fff;
+    z-index: 999;
+    overflow-y: auto;
+    backface-visibility: hidden;
+    transform: translateX(105%);
+    transition-timing-function: ease-in;
+    transition: 0.50s;
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 3px 1px -2px rgba(0,0,0,0.12),0 1px 5px 0 rgba(0,0,0,0.2)
+}
+
+.details-sidebar.slide {
+    transition-timing-function: ease-out;
+    transition: 0.50s;
+    transform:translateX(0%);
+}
+
+.details-figure {
+    position:fixed;
+    width:60%;
+    left:0;
+    top:0;
+    margin:0;
+    height:100%;
+    height:calc(100% + 60px);
+    padding-bottom:60px;
+    z-index:999;
+    overflow-y:auto;
+    backface-visibility:hidden;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.50s;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.details-figure.fade {
+    visibility: visible;
+    opacity: 1;
+}
+
+.details-figure > .map-container {
+    height: 75%;
+    display: flex;
+    justify-content: center;
 }
