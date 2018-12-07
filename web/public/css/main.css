@@ -116,3 +116,17 @@ path:hover {
     font-variant: small-caps;
     font-size: 1.25rem;
 }
+
+.cookie-modal {
+    display: flex !important;
+}
+
+.cookie-modal > .cookie-picture {
+    flex: 1;
+    background: url('../img/cookies.jpg') no-repeat center center fixed;
+    background-size: cover;
+}
+
+.cookie-modal > .cookie-content {
+    flex: 11;
+}

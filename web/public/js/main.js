@@ -11,7 +11,24 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         initializeMaterializeElements();
+
+        if (askForCookiePermission()) {
+            openCookieModal();
+        } else {
+            
+        }
     });
+
+    function askForCookiePermission() {
+        return document.cookie.length == 0;
+    }
+
+    function openCookieModal() {
+        const cookieModal = document.querySelector('.cookie-modal');
+        const instance = M.Modal.getInstance(cookieModal);
+        instance.options.dismissible = false;
+        instance.open();
+    }
 
     async function setupMainMap() {
         State.elements.mainMap = d3.select('.us-map')
@@ -56,6 +73,15 @@
             const modal = document.getElementById('viz-mode-modal');
             M.Modal.getInstance(modal).open();
         });
+
+        document.querySelector('.cookie-fail').addEventListener('click', function cookieOffClick() {
+            window.location = 'http://www.nocookie.com/';
+        })
+
+        document.querySelector('.cookie-okay').addEventListener('click', function cookieOnClick() {
+            const cookieModal = document.querySelector('.cookie-modal');
+            M.Modal.getInstance(cookieModal).close();
+        })
     }
 
     function initializeMainMapVizModeTriggers() {
