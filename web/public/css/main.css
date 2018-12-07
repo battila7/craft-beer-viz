@@ -311,6 +311,10 @@ svg {
     position: relative;
 }
 
+.state-details-body {
+    height: 75%;
+}
+
 .state-name {
     height: 100%;
     display: flex;
@@ -326,6 +330,10 @@ svg {
     padding-bottom: 0;
 }
 
+#state-statistics {
+    height: calc(100% - 48px);
+}
+
 .city-name-element {
     min-height: 40px;
     position: relative;
@@ -336,4 +344,22 @@ svg {
     display: flex;
     justify-content: center;
     align-content: center;
+}
+
+.state-statistics-wrapper {
+    height: calc(100% - 48px);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.pie-holder {
+    height: 90%;
+    width: 100%;
+    padding-left: 0.5rem;
+}
+
+.pie-legend {
+    font-size: 10px;
 }

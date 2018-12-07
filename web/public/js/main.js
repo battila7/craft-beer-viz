@@ -230,6 +230,9 @@
         const detailsFigure = document.querySelector('.details-figure');
         detailsFigure.classList.add('fade');
 
+        const tabs = document.querySelector('.state-details-tabs');
+        M.Tabs.getInstance(tabs).select('state-statistics');
+
         const mp = d3.select('.details-figure > .map-container')
             .append('svg')
             .attr('width', '75%')
@@ -249,9 +252,32 @@
 
         const breweriesCollection = document.querySelector('.state-breweries-collection');
     
+        console.log(state);
         while (breweriesCollection.firstChild) {
             breweriesCollection.removeChild(breweriesCollection.firstChild);
         }
+        const statTabs = document.querySelector('.state-statistics-tabs');
+        M.Tabs.getInstance(statTabs).options.onShow = function onShow(node) {
+            if (node.id == 'state-nationality-stats') {
+                const data = state.nationalityWithoutAmericanAndMiscPopularities
+                    .filter(d => d.percentage > 0)
+                    .filter(d => d.key != 'american')
+                    .map(d => {
+                        return {
+                            key: State.data.dataset.nationalityNameMap[d.key],
+                            percentage: d.percentage
+                        }
+                    });
+
+                makePopuplarityPie(data, '#state-nationality-stats');
+            } else if (node.id == 'state-type-stats') {
+                makePopuplarityPie(state.typePopularities.filter(d => d.percentage > 0), '#state-type-stats');
+            }
+
+            node.style.display = 'flex';
+        }
+
+        M.Tabs.getInstance(statTabs).select('state-type-stats')
 
         state.cities
             .forEach(city => {
@@ -327,6 +353,68 @@
                 })
                 el.scrollIntoView();
             })
+    }
+
+    function makePopuplarityPie(data, baseSelector) {
+        var legendRectSize = 20; // defines the size of the colored squares in legend
+        var legendSpacing = 6; // defines spacing between squares
+
+        const color = d3.scaleOrdinal()
+            .domain(data.map(d => d.key))
+            .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse())
+
+        const pie = d3.pie()
+            .sort(null)
+            .value(d => d.percentage);
+
+        const pieHolder = document.querySelector(`${baseSelector} > .pie-holder`);
+
+        pieHolder.removeChild(pieHolder.firstChild);
+
+        const svg = d3.select(`${baseSelector} > .pie-holder`)
+            .append('svg')
+            .attr('width', '100%')
+            .attr('height', '100%');
+
+        const { height, width } = document.querySelector(`${baseSelector} > .pie-holder > svg`).getClientRects()[0];
+
+        const radius = Math.min(height, width) / 2.33 - 1;
+
+        const arc = d3.arc()
+            .innerRadius(0)
+            .outerRadius(radius)
+
+        const arcs = pie(data);
+        
+        const g = svg.append("g")
+            .attr("transform", `translate(${radius},${height / 2})`);
+        
+        g.selectAll("path")
+            .data(arcs)
+            .enter().append("path")
+            .attr("fill", d => color(d.data.key))
+            .attr("stroke", "white")
+            .attr("d", arc);
+
+        var legend = svg.selectAll('.pie-lenged') // selecting elements with class 'legend'
+            .data(data) // refers to an array of labels from our dataset
+            .enter() // creates placeholder
+            .append('g') // replace placeholders with g elements
+            .attr('class', 'legend') // each g is given a legend class
+            .attr('transform', (d, i) => `translate(${2 * radius + 20} ${i * 30})`);
+          
+          // adding colored squares to legend
+          legend.append('rect') // append rectangle squares to legend                                   
+            .attr('width', legendRectSize) // width of rect size is defined above                        
+            .attr('height', legendRectSize) // height of rect size is defined above                      
+            .style('fill', d => color(d.key)) // each fill is passed a color
+            .style('stroke', 'green') // each stroke is passed a color
+          
+          // adding text to legend
+          legend.append('text')                                    
+            .attr('x', legendRectSize + legendSpacing)
+            .attr('y', legendRectSize - legendSpacing)
+            .text(function(d) { return d.key; }); // return label
     }
 
     function resetMainMap() {
