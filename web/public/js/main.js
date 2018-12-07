@@ -148,6 +148,9 @@
     
         const modals = document.querySelectorAll('.modal');
         M.Modal.init(modals, {});
+
+        const tabs = document.querySelectorAll('.tabs');
+        M.Tabs.init(tabs, {});
     
         document.querySelector('.viz-mode-modal-trigger').addEventListener('click', function vizModeModalTriggerClick() {
             const sidenav = document.querySelector('.sidenav');
@@ -165,6 +168,19 @@
             const cookieModal = document.querySelector('.cookie-modal');
             M.Modal.getInstance(cookieModal).close();
             openPreloadingModal();
+        });
+
+        document.querySelector('.details-close').addEventListener('click', function detailsCloseClick() {
+            const detailsOverlay = document.querySelector('.details-overlay');
+            detailsOverlay.classList.remove('fade');
+
+            const detailsSidebar = document.querySelector('.details-sidebar');
+            detailsSidebar.classList.remove('slide');
+
+            const detailsFigure = document.querySelector('.details-figure');
+            detailsFigure.classList.remove('fade');
+
+            document.querySelector('.map-container > svg').remove();
         });
     }
 
@@ -227,7 +243,44 @@
 
         const path = d3.geoPath().projection(projection);
 
-        console.log(state);
+        const div = d3.select('.details-tooltip');
+
+        document.querySelector('.state-name').textContent = state.name;
+
+        const breweriesCollection = document.querySelector('.state-breweries-collection');
+    
+        while (breweriesCollection.firstChild) {
+            breweriesCollection.removeChild(breweriesCollection.firstChild);
+        }
+
+        state.cities
+            .forEach(city => {
+                const listElement = document.createElement('li');
+                listElement.classList.add('city-name-element');
+                listElement.innerHTML = `<div>${city.city}</div>`
+                breweriesCollection.appendChild(listElement);
+
+                city.breweries.forEach(brewery => {
+                    const listElement = document.createElement('li');
+                    listElement.classList.add('collection-item', 'avatar');
+
+                    if (brewery.hasLogo) {
+                        const img = document.createElement('img');
+                        img.src = window.URL.createObjectURL(State.data.breweryLogos[brewery.name]);
+                        img.classList.add('circle');
+                        img.onload = function() {
+                            URL.revokeObjectURL(this.src);
+                        }
+                        listElement.appendChild(img);
+                    }
+                    const span = document.createElement('span');
+                    span.textContent = brewery.name;
+                    span.classList.add('title');
+
+                    listElement.appendChild(span);
+                    breweriesCollection.appendChild(listElement);
+                })
+            });
 
         mp.append('path')
             .attr('d', path(d))
@@ -246,7 +299,34 @@
             .attr('cy', function cx({ lat, lng }) {
                 return projection([lng, lat])[1];
             })
-            .style('fill', 'rgb(255, 68, 51)');
+            .style('fill', 'rgb(255, 68, 51)')
+            .on("mouseover", function(d) {
+                d3.select(this).attr('r', 8);
+                div.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                div.text(d.city)
+                   .style("left", (d3.event.pageX) + "px")     
+                   .style("top", (d3.event.pageY - 28) + "px");    
+            })   
+            .on("mouseout", function(d) { 
+                d3.select(this).attr('r', 5);
+                div.transition()        
+                   .duration(500)      
+                   .style("opacity", 0);   
+            })
+            .on('click', function(d) {
+                const tabs = document.querySelector('.state-details-tabs');
+                M.Tabs.getInstance(tabs).select('state-breweries');
+
+                let el;
+                document.querySelectorAll('.city-name-element > div').forEach(node => {
+                    if (node.textContent == d.city) {
+                        el = node;
+                    }
+                })
+                el.scrollIntoView();
+            })
     }
 
     function resetMainMap() {

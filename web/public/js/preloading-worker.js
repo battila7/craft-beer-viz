@@ -19,11 +19,14 @@ async function main({ height, width, scale }) {
         .then(response => response.json())
         .then(dataset => State.data.dataset = dataset)
 
-    fetch('../data/us-states.json')
+    await preloadBreweryLogos();
+
+    await fetch('../data/us-states.json')
         .then(response => response.json())
         .then(a => State.data.geometry = a)
         .then(computeCenterlines)
-        .then(sendState);
+
+    sendState();
 
     function computeCenterlines() {
         const projection =  d3.geoAlbersUsa()
@@ -47,6 +50,26 @@ async function main({ height, width, scale }) {
             State.centerlines[feature.properties.name] = centerline.computeCenterline(feature, projection);
             console.log(feature.properties.name);
         });
+    }
+
+    async function preloadBreweryLogos() {
+        State.data.breweryLogos = [];
+        try {
+        for (const state of Object.values(State.data.dataset.state.aggregate)) {
+            for (const brewery of state.breweries) {
+                if (!brewery.hasLogo) {
+                    continue;
+                }
+
+                console.log(brewery.name);
+
+                State.data.breweryLogos[brewery.name] = await fetch(`../img/logo/${brewery.name}.jpg`).then(response => response.blob());
+            }
+        }
+    } catch (err) {
+        console.log(err);
+        console.log(err.stack)
+    }
     }
 
     function sendState() {
