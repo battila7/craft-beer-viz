@@ -64,6 +64,29 @@
 
         const preloadingModal = document.querySelector('.preloading-modal');
         M.Modal.getInstance(preloadingModal).close();
+
+        if (shouldOpenTapTip()) {
+            openTapTip();
+        }
+    }
+
+    function openTapTip() {
+        const firstUseTapTarget = document.querySelector('.tap-target');
+        const instance = M.TapTarget.getInstance(firstUseTapTarget);
+
+        instance.options.onClose = function onTapTipClose() {
+            saveTapTipOpened();
+        }
+
+        instance.open();
+    }
+
+    function shouldOpenTapTip() {
+        return document.cookie.replace(/(?:(?:^|.*;\s*)tapTipOpened\s*\=\s*([^;]*).*$)|^.*$/, '$1') !== 'true'
+    }
+
+    function saveTapTipOpened() {
+        document.cookie = 'tapTipOpened=true; expires=Fri, 31 Dec 9999 23:59:59 GMT';
     }
 
     async function preload() {
@@ -136,13 +159,13 @@
 
         document.querySelector('.cookie-fail').addEventListener('click', function cookieOffClick() {
             window.location = 'http://www.nocookie.com/';
-        })
+        });
 
         document.querySelector('.cookie-okay').addEventListener('click', function cookieOnClick() {
             const cookieModal = document.querySelector('.cookie-modal');
             M.Modal.getInstance(cookieModal).close();
             openPreloadingModal();
-        })
+        });
     }
 
     function initializeMainMapVizModeTriggers() {
@@ -294,6 +317,10 @@
     function setLegendSelection(name, value) {
         const nameElement = document.querySelector('.selection-name');
         const valueElement = document.querySelector('.selection-value');
+
+        if (!nameElement) {
+            return;
+        }
 
         nameElement.innerHTML = name;
         valueElement.innerHTML = value;
