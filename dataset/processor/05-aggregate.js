@@ -233,6 +233,16 @@ function calculateStateAggregates(beers, breweries, states, typeMap, nationaliti
             aggregate.mostPopularNationality = natCopy[natCopy.length - 2].key;
         }
 
+        let natNoAmMiscCopy = [];
+        for (const key of Object.keys(aggregate.nationality.aggregate)) {
+            natNoAmMiscCopy.push({
+                key,
+                percentage: aggregate.nationality.aggregate[key].percentageWithoutAmericanAndMisc
+            });
+        }
+        natNoAmMiscCopy.sort((a, b) => a.percentage - b.percentage);
+        aggregate.nationalityWithoutAmericanAndMiscPopularities = natNoAmMiscCopy;
+
         let styleCopy = [];
         for (const key of Object.keys(aggregate.style.aggregate)) {
             styleCopy.push({
