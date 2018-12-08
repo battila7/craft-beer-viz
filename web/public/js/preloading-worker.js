@@ -21,8 +21,6 @@ async function main({ height, width, scale }) {
         .then(response => response.json())
         .then(dataset => State.data.dataset = dataset)
 
-    await preloadBreweryLogos();
-
     sendStatusUpdate('Fetching state geometries');
 
     await fetch('../data/us-states.json')
@@ -31,6 +29,8 @@ async function main({ height, width, scale }) {
         .then(computeCenterlines)
 
     sendState();
+
+    preloadBreweryLogos();
 
     function computeCenterlines() {
         const projection = d3.geoAlbersUsa()
@@ -60,15 +60,18 @@ async function main({ height, width, scale }) {
         State.data.breweryLogos = [];
         try {
             for (const state of Object.values(State.data.dataset.state.aggregate)) {
-                sendStatusUpdate(`Loading logos for ${state.name}`);
+                const promises = state.breweries
+                    .filter(brewery => brewery.hasLogo)
+                    .map(brewery => {
+                        return fetch(`../img/logo/${brewery.name}.jpg`)
+                            .then(response => response.blob())
+                            .then(blob => ({ blob, name: brewery.name }))
+                            .catch(() => null)
+                    });
 
-                for (const brewery of state.breweries) {
-                    if (!brewery.hasLogo) {
-                        continue;
-                    }
+                const results = await Promise.all(promises);
 
-                    State.data.breweryLogos[brewery.name] = await fetch(`../img/logo/${brewery.name}.jpg`).then(response => response.blob());
-                }
+                sendLogos(results);
             }
         } catch (err) {
             console.log(err);
@@ -82,6 +85,10 @@ async function main({ height, width, scale }) {
 
     function sendStatusUpdate(message) {
         self.postMessage({ type: 'statusUpdate', data: message });
+    }
+
+    function sendLogos(logos) {
+        self.postMessage({ type: 'logos', data: logos.filter(logo => logo != null) });
     }
 };
 

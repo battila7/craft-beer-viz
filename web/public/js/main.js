@@ -106,9 +106,14 @@
             if (payload.type == 'statusUpdate') {
                 document.querySelector('.preloading-description').textContent = payload.data;
             }
+
+            if (payload.type == 'logos') {
+                payload.data.forEach(({ name, blob }) => State.data.breweryLogos[name] = blob);
+            }
             
             if (payload.type == 'done') {
                 State.data = payload.data.data;
+                State.data.breweryLogos = Object.create(null);
                 State.centerlines = payload.data.centerlines;
 
                 endPreload();
@@ -311,7 +316,7 @@
                     const listElement = document.createElement('li');
                     listElement.classList.add('collection-item', 'avatar');
 
-                    if (brewery.hasLogo) {
+                    if (brewery.hasLogo && State.data.breweryLogos[brewery.name]) {
                         const img = document.createElement('img');
                         img.src = window.URL.createObjectURL(State.data.breweryLogos[brewery.name]);
                         img.classList.add('circle');
