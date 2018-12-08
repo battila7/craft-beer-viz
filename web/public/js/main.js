@@ -168,6 +168,14 @@
             M.Modal.getInstance(modal).open();
         });
 
+        document.querySelector('.help-trigger').addEventListener('click', function helpTriggerClick() {
+            const sidenav = document.querySelector('.sidenav');
+            M.Sidenav.getInstance(sidenav).close();
+    
+            const helpOverlay = document.querySelector('.help-overlay');
+            helpOverlay.classList.add('fade');
+        });
+
         document.querySelector('.cookie-fail').addEventListener('click', function cookieOffClick() {
             window.location = 'http://www.nocookie.com/';
         });
@@ -189,6 +197,11 @@
             detailsFigure.classList.remove('fade');
 
             document.querySelector('.map-container > svg').remove();
+        });
+
+        document.getElementById('help-close-button').addEventListener('click', function helpCloseClick() {    
+            const helpOverlay = document.querySelector('.help-overlay');
+            helpOverlay.classList.remove('fade');
         });
     }
 
