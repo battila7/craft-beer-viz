@@ -101,10 +101,18 @@
         });
 
         State.preloadingWorker.onmessage = function onMessage(message) {
-            State.data = message.data.data;
-            State.centerlines = message.data.centerlines;
+            const payload = message.data;
 
-            endPreload();
+            if (payload.type == 'statusUpdate') {
+                document.querySelector('.preloading-description').textContent = payload.data;
+            }
+            
+            if (payload.type == 'done') {
+                State.data = payload.data.data;
+                State.centerlines = payload.data.centerlines;
+
+                endPreload();
+            }
         }
     }
 
@@ -527,9 +535,16 @@
                         State.mainMap.height,
                         `pa${index}`,
                         text);
+
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.innerHTML = label;
+                mainMapSvg.appendChild(g);
     
-                mainMapSvg.innerHTML += label;
+                g.addEventListener('click', function onGroupClick() {
+                    showDetailsView(feature, state);
+                });
             });
+
         });
     }
 

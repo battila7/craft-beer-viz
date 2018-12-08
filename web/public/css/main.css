@@ -363,3 +363,11 @@ svg {
 .pie-legend {
     font-size: 10px;
 }
+
+.preloading-description-container {
+    height: 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 5px;
+}
