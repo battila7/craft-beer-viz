@@ -450,6 +450,10 @@
             mp.removeChild(mp.firstChild);
         }
 
+        State.elements.defs = State.elements.mainMap.append('defs');
+
+        console.log(State.elements.defs);
+
         State.elements.mainMap.selectAll('path')
             .data(State.data.geometry.features)
             .enter()
@@ -464,6 +468,75 @@
 
                 showDetailsView(d, state);
             })
+
+        State.elements.mainMap.selectAll('path')
+            .style('fill', (d, index, elements) => {
+                const abbreviation = State.data.dataset.inverseStateMap[d.properties.name];
+                const state = State.data.dataset.state.aggregate[abbreviation];
+
+                console.log(state);
+
+                if ((!state) || (state.mostPopularNationality == 'unknown')) {
+                    return 'rgb(213,222,217)';
+                }
+
+                const { height, width } = d3.select(elements[index]).node().getBBox();
+
+                const id = `flag-${index}`;
+
+                State.elements.defs.append('pattern')
+                    .attr('id', id)
+                    .attr('width', 1)
+                    .attr('height', 1)
+                    .append("image")
+                    .attr("xlink:href", `/img/flags/${state.mostPopularNationality}.png`)
+                    .attr('width', width)
+                    .attr('height', height)
+                    .attr('preserveAspectRatio', 'xMidYMid slice');
+
+                return `url(#${id})`;
+            })
+            .style('fill-opacity', (d, index, elements) => {
+                const abbreviation = State.data.dataset.inverseStateMap[d.properties.name];
+                const state = State.data.dataset.state.aggregate[abbreviation];
+
+                if ((!state) || (state.mostPopularNationality == 'unknown')) {
+                    d.origOpacity = 0.7;
+                } else {
+                    const { min, max } = State.data.dataset.nationalityCityPopularity[state.mostPopularNationality];
+
+                    d.origOpacity = opacityLerp(min, max, state.nationalityCount);
+                }
+
+                return d.origOpacity;
+            })
+            .on('mouseover', function (d) {
+                d3.select(this)
+                    .style('fill-opacity', 1.0);
+            })
+            .on('mouseleave', function (d) {
+                d3.select(this)
+                    .style('fill-opacity', d.origOpacity );
+            })
+
+        const cities = Object.values(State.data.dataset.state.aggregate)
+            .map(state => state.nationalityCities)
+            .reduce((acc, curr) => acc.concat(curr), []);
+
+        State.elements.mainMap.selectAll('circle')
+            .data(cities)
+            .enter()
+            .append('circle')
+            .attr('r', '3')
+            .style('fill', 'black')
+            .style('stroke', 'rgb(213,222,217)')
+            .style('stroke-width', 1)
+            .attr('cx', function cx({ lat, lng }) {
+                return State.mainMap.projection([lng, lat])[0];
+            })
+            .attr('cy', function cx({ lat, lng }) {
+                return State.mainMap.projection([lng, lat])[1];
+            });
     }
 
     function setupMainMapColorViz(options) {
@@ -626,7 +699,7 @@
     }
 
     function loadDataset() {
-        return fetch('data/dataset.json')
+        return fetch('data/dataset-2.json')
             .then(response => response.json())
             .then(dataset => State.data.dataset = dataset);
     };
@@ -636,6 +709,19 @@
             .then(response => response.json())
             .then(a => State.data.geometry = a);
     };
+
+    function opacityLerp(min, max, value) {
+        const MAX = 0.825;
+        const MIN = 0.2;
+
+        if (max == min) {
+            return MAX;
+        }
+
+        const t = value / (max - min);
+
+        return (1 - t) * MIN + t * MAX;
+    }
 
     function interpolateColor(t) {
         const r1 = 213, g1 = 222, b1 = 217;

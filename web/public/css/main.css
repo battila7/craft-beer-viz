@@ -17,7 +17,7 @@ svg {
 
 /* On mouse hover, lighten state color */
 .us-map path:hover {
-    fill-opacity: .7;
+    fill-opacity: 1.0;
 }
 
 .menu-header {

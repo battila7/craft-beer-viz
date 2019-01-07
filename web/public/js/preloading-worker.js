@@ -17,7 +17,7 @@ async function main({ height, width, scale }) {
 
     sendStatusUpdate('Fetching dataset');
 
-    await fetch('../data/dataset.json')
+    await fetch('../data/dataset-3.json')
         .then(response => response.json())
         .then(dataset => State.data.dataset = dataset)
 
@@ -26,7 +26,7 @@ async function main({ height, width, scale }) {
     await fetch('../data/us-states.json')
         .then(response => response.json())
         .then(a => State.data.geometry = a)
-        .then(computeCenterlines)
+        .then(computeCenterlines);
 
     sendState();
 
