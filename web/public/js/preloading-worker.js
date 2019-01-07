@@ -26,7 +26,6 @@ async function main({ height, width, scale }) {
     await fetch('../data/us-states.json')
         .then(response => response.json())
         .then(a => State.data.geometry = a)
-        .then(computeCenterlines);
 
     sendState();
 

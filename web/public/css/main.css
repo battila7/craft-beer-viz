@@ -52,6 +52,29 @@ svg {
     padding-left: 0.5rem;
 }
 
+.collection.state-breweries-collection {
+    margin-top: 0em;
+    border: none;
+    border-radius: none;
+}
+
+.title.beer {
+    font-size: 1.33em !important;
+    font-weight: 300;
+}
+
+.title.brewery {
+    
+}
+
+.flag {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30%;
+    height: 100%;
+}
+
 .title > div {
     color: white;
     font-size: 3.5rem;

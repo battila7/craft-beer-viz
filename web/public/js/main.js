@@ -6,13 +6,18 @@
 (async function mainIIFE() {
     const State = {
         data: {},
-        elements: {}
+        elements: {},
+        audio: {
+            pour: new Audio('/audio/pour.mp3')
+        },
+        handle: {
+            stateFadeAnimationFrame: null,
+            pourAnimationFrame: null
+        }
     };
 
     document.addEventListener('DOMContentLoaded', function() {
         initializeMaterializeElements();
-
-        initializeMainMapVizModeTriggers();
 
         if (askForCookiePermission()) {
             openCookieModal();
@@ -64,10 +69,6 @@
 
         const preloadingModal = document.querySelector('.preloading-modal');
         M.Modal.getInstance(preloadingModal).close();
-
-        if (shouldOpenTapTip()) {
-            openTapTip();
-        }
     }
 
     function openTapTip() {
@@ -151,35 +152,11 @@
     }
 
     function initializeMaterializeElements() {
-        const firstUseTapTarget = document.querySelector('.tap-target');
-        M.TapTarget.init(firstUseTapTarget, {});
-    
-        const sidenav = document.querySelector('.sidenav');
-        M.Sidenav.init(sidenav, {
-            edge: 'right'
-        });
-    
         const modals = document.querySelectorAll('.modal');
         M.Modal.init(modals, {});
 
         const tabs = document.querySelectorAll('.tabs');
         M.Tabs.init(tabs, {});
-    
-        document.querySelector('.viz-mode-modal-trigger').addEventListener('click', function vizModeModalTriggerClick() {
-            const sidenav = document.querySelector('.sidenav');
-            M.Sidenav.getInstance(sidenav).close();
-    
-            const modal = document.getElementById('viz-mode-modal');
-            M.Modal.getInstance(modal).open();
-        });
-
-        document.querySelector('.help-trigger').addEventListener('click', function helpTriggerClick() {
-            const sidenav = document.querySelector('.sidenav');
-            M.Sidenav.getInstance(sidenav).close();
-    
-            const helpOverlay = document.querySelector('.help-overlay');
-            helpOverlay.classList.add('fade');
-        });
 
         document.querySelector('.cookie-fail').addEventListener('click', function cookieOffClick() {
             window.location = 'http://www.nocookie.com/';
@@ -202,14 +179,12 @@
             detailsFigure.classList.remove('fade');
 
             document.querySelector('.map-container > svg').remove();
-        });
 
-        document.getElementById('help-close-button').addEventListener('click', function helpCloseClick() {    
-            const helpOverlay = document.querySelector('.help-overlay');
-            helpOverlay.classList.remove('fade');
+            State.audio.pour.pause();
         });
     }
 
+    /*
     function initializeMainMapVizModeTriggers() {
         setupMainMapColorViz({
             triggerSelector: '.number-of-beers-action',
@@ -244,9 +219,11 @@
             triggerSelector: '.most-popular-type-action',
             propertyName: 'mostPopularType'
         });
-    }
+    }*/
 
     function showDetailsView(d, state) {
+        document.querySelector('.state-details').scrollTop = 0;
+
         const detailsOverlay = document.querySelector('.details-overlay');
         detailsOverlay.classList.add('fade');
 
@@ -256,8 +233,8 @@
         const detailsFigure = document.querySelector('.details-figure');
         detailsFigure.classList.add('fade');
 
-        const tabs = document.querySelector('.state-details-tabs');
-        M.Tabs.getInstance(tabs).select('state-statistics');
+        //const tabs = document.querySelector('.state-details-tabs');
+        //M.Tabs.getInstance(tabs).select('state-statistics');
 
         const mp = d3.select('.details-figure > .map-container')
             .append('svg')
@@ -278,11 +255,10 @@
 
         const breweriesCollection = document.querySelector('.state-breweries-collection');
     
-        console.log(state);
         while (breweriesCollection.firstChild) {
             breweriesCollection.removeChild(breweriesCollection.firstChild);
         }
-        const statTabs = document.querySelector('.state-statistics-tabs');
+        /*const statTabs = document.querySelector('.state-statistics-tabs');
         M.Tabs.getInstance(statTabs).options.onShow = function onShow(node) {
             if (node.id == 'state-nationality-stats') {
                 const data = state.nationalityWithoutAmericanAndMiscPopularities
@@ -303,7 +279,7 @@
             node.style.display = 'flex';
         }
 
-        M.Tabs.getInstance(statTabs).select('state-type-stats')
+        M.Tabs.getInstance(statTabs).select('state-type-stats')*/
 
         state.cities
             .forEach(city => {
@@ -312,36 +288,197 @@
                 listElement.innerHTML = `<div>${city.city}</div>`
                 breweriesCollection.appendChild(listElement);
 
-                city.breweries.forEach(brewery => {
+                const beers = city.breweries.map(brewery => {
+                    const breweryCopy = Object.assign({}, brewery);
+                    delete breweryCopy.beers;
+
+                    return brewery.beers.map(beer => Object.assign({ brewery: breweryCopy }, beer));
+                }).reduce((acc, curr) => acc.concat(curr), []);
+
+                beers.sort((a, b) => {
+                     const breweryCompare = a.brewery.name.localeCompare(b.brewery.name);
+
+                     if (breweryCompare != 0) {
+                         return breweryCompare;
+                     } else {
+                         return a.name.localeCompare(b.name);
+                     }
+                });
+
+                beers.forEach((beer, index) => {
                     const listElement = document.createElement('li');
                     listElement.classList.add('collection-item', 'avatar');
 
-                    if (brewery.hasLogo && State.data.breweryLogos[brewery.name]) {
+                    if (beer.brewery.hasLogo && State.data.breweryLogos[beer.brewery.name]) {
                         const img = document.createElement('img');
-                        img.src = window.URL.createObjectURL(State.data.breweryLogos[brewery.name]);
+                        img.src = window.URL.createObjectURL(State.data.breweryLogos[beer.brewery.name]);
                         img.classList.add('circle');
                         img.onload = function() {
                             URL.revokeObjectURL(this.src);
                         }
                         listElement.appendChild(img);
                     }
-                    const span = document.createElement('span');
-                    span.textContent = brewery.name;
-                    span.classList.add('title');
 
-                    listElement.appendChild(span);
+                    if (beer.nationality && beer.nationality != 'unknown' && beer.nationality != 'misc') {
+                        const flag = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        flag.innerHTML = `
+                        <defs>
+                            <linearGradient id="gradient-${index}">
+                                <stop offset="0" stop-color="white" stop-opacity="0"></stop>
+                                <stop offset="1" stop-color="white" stop-opacity="1"></stop>
+                            </linearGradient>
+                            <mask id="mask-${index}">
+                                <rect x="0" y="0" width="200" height="200" fill="url(#gradient-${index})"></rect>
+                            </mask>
+                        </defs>
+                        <image mask="url(#mask-${index})" xlink:href="/img/flags/${beer.nationality}.png"
+                            width="100%" height="100%" preserveAspectRatio="none"></image>
+                        `;
+                        flag.classList.add('flag');
+                        listElement.appendChild(flag);
+                    }
+
+                    const breweryNameSpan = document.createElement('span');
+                    breweryNameSpan.textContent = beer.brewery.name;
+                    breweryNameSpan.classList.add('title');
+                    breweryNameSpan.classList.add('brewery');
+
+                    const beerNameSpan = document.createElement('span');
+                    beerNameSpan.textContent = beer.name;
+                    beerNameSpan.classList.add('title');
+                    beerNameSpan.classList.add('beer');
+
+                    listElement.appendChild(beerNameSpan);
+                    listElement.appendChild(breweryNameSpan);
                     breweriesCollection.appendChild(listElement);
-                })
+                });
             });
 
-        mp.append('path')
+        const group = mp.append('g');
+
+        const statePath = group.append('path')
             .attr('d', path(d))
             .style('stroke', '#fff')
             .style('stroke-width', '1')
             .style('fill', 'rgb(213,222,217)');
 
-        mp.selectAll('circle')
-            .data(state.cities)
+        const bbox = group.select('path').node().getBBox();
+
+        const imgWidth = bbox.width;
+        const imgHeight = bbox.height;
+
+        const defs = mp.append('defs');
+        const patternId = 'details-flag';
+
+        defs.append('pattern')
+            .attr('id', patternId)
+            .attr('width', 1)
+            .attr('height', 1)
+            .append("image")
+            .attr("xlink:href", `/img/flags/${state.mostPopularNationality}.png`)
+            .attr('width', imgWidth)
+            .attr('height', imgHeight)
+            .attr('preserveAspectRatio', 'xMidYMid slice');
+
+        const clipId = 'details-clip';
+        const clip = defs.append('clipPath')
+            .attr('id', 'details-clip');
+
+        const clipRect = clip.append('rect')
+            .attr('x', 0)
+            .attr('y', height)
+            .attr('width', width)
+            .attr('height', height);
+
+        group.attr('clip-path', `url(#${clipId})`);
+
+        if (state.mostPopularNationality != 'unknown') {
+            statePath.style('fill', `url(#${patternId})`);
+        }
+
+        if (State.handle.stateFadeAnimationFrame) {
+            cancelAnimationFrame(State.handle.stateFadeAnimationFrame);
+        }
+
+        if (State.handle.pourAnimationFrame) {
+            cancelAnimationFrame(State.handle.pourAnimationFrame);
+        }
+
+        State.audio.pour.currentTime = 0;
+        State.audio.pour.volume = 1;
+        State.audio.pour.play();
+
+        (function fadeIn() {
+            const y = clipRect.attr('y');
+
+            if (y > 0) {
+                clipRect.attr('y', y - 2.);
+
+                State.handle.stateFadeAnimationFrame = requestAnimationFrame(fadeIn);
+            } else {
+                State.handle.stateFadeAnimationFrame = null;
+
+                (function fadeOutAudio() {
+                    const vol = State.audio.pour.volume;
+
+                    if (vol > 0) {
+                        State.audio.pour.volume = Math.max(vol - 0.02, 0);
+
+                        State.handle.pourAnimationFrame = requestAnimationFrame(fadeOutAudio);
+                    } else {
+                        State.audio.pour.pause();
+
+                        State.handle.pourAnimationFrame = null;
+                    }
+                })();
+            }
+        })();
+
+        
+
+        group.selectAll('circle')
+            .data(state.nationalityCities)
+            .enter()
+            .append('circle')
+            .attr('r', '7')
+            .attr('cx', function cx({ lat, lng }) {
+                return projection([lng, lat])[0];
+            })
+            .attr('cy', function cx({ lat, lng }) {
+                return projection([lng, lat])[1];
+            })
+            .style('stroke', 'white')
+            .style('stroke-width', 1)
+            .style('fill', '#F44336')
+            .on("mouseover", function(d) {
+                d3.select(this).attr('r', 9);
+                div.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                div.text(d.city)
+                   .style("left", (d3.event.pageX) + "px")     
+                   .style("top", (d3.event.pageY - 28) + "px");    
+            })   
+            .on("mouseout", function(d) { 
+                d3.select(this).attr('r', 7);
+                div.transition()        
+                   .duration(500)      
+                   .style("opacity", 0);   
+            })
+            .on('click', function(d) {
+                let el;
+                document.querySelectorAll('.city-name-element > div').forEach(node => {
+                    if (node.textContent == d.city) {
+                        el = node;
+                    }
+                })
+                el.scrollIntoView();
+            })
+
+        const otherCities = state.cities.filter(city => state.nationalityCities.find(c => c.city == city.city) == undefined)
+
+        group.selectAll('circle')
+            .data(otherCities)
             .enter()
             .append('circle')
             .attr('r', '5')
@@ -351,7 +488,9 @@
             .attr('cy', function cx({ lat, lng }) {
                 return projection([lng, lat])[1];
             })
-            .style('fill', 'rgb(255, 68, 51)')
+            .style('stroke', 'white')
+            .style('stroke-width', 1)
+            .style('fill', 'black')
             .on("mouseover", function(d) {
                 d3.select(this).attr('r', 8);
                 div.transition()
@@ -368,9 +507,6 @@
                    .style("opacity", 0);   
             })
             .on('click', function(d) {
-                const tabs = document.querySelector('.state-details-tabs');
-                M.Tabs.getInstance(tabs).select('state-breweries');
-
                 let el;
                 document.querySelectorAll('.city-name-element > div').forEach(node => {
                     if (node.textContent == d.city) {
@@ -452,8 +588,6 @@
 
         State.elements.defs = State.elements.mainMap.append('defs');
 
-        console.log(State.elements.defs);
-
         State.elements.mainMap.selectAll('path')
             .data(State.data.geometry.features)
             .enter()
@@ -473,8 +607,6 @@
             .style('fill', (d, index, elements) => {
                 const abbreviation = State.data.dataset.inverseStateMap[d.properties.name];
                 const state = State.data.dataset.state.aggregate[abbreviation];
-
-                console.log(state);
 
                 if ((!state) || (state.mostPopularNationality == 'unknown')) {
                     return 'rgb(213,222,217)';
@@ -528,8 +660,9 @@
             .enter()
             .append('circle')
             .attr('r', '3')
-            .style('fill', 'black')
-            .style('stroke', 'rgb(213,222,217)')
+            .style('fill', '#F44336')
+            .style('pointer-events', 'none')
+            .style('stroke', 'white')
             .style('stroke-width', 1)
             .attr('cx', function cx({ lat, lng }) {
                 return State.mainMap.projection([lng, lat])[0];
@@ -539,6 +672,7 @@
             });
     }
 
+    /*
     function setupMainMapColorViz(options) {
         document.querySelector(options.triggerSelector).addEventListener('click', function() {
             const vizModeModal = document.getElementById('viz-mode-modal');
@@ -637,9 +771,9 @@
             });
 
         });
-    }
+    }*/
 
-    function setLegendSelection(name, value) {
+    /*function setLegendSelection(name, value) {
         const nameElement = document.querySelector('.selection-name');
         const valueElement = document.querySelector('.selection-value');
 
@@ -696,19 +830,7 @@
                 ${contents}
             </div>
         `;
-    }
-
-    function loadDataset() {
-        return fetch('data/dataset-2.json')
-            .then(response => response.json())
-            .then(dataset => State.data.dataset = dataset);
-    };
-
-    function loadMapGeometry() {
-        return fetch('data/us-states.json')
-            .then(response => response.json())
-            .then(a => State.data.geometry = a);
-    };
+    }*/
 
     function opacityLerp(min, max, value) {
         const MAX = 0.825;
