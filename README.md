@@ -72,7 +72,7 @@ A következőkben a vizualizáció érdekesebb pontjait emelem ki.
 
 Az Egyesült Államokat adó államok zászlókkal vannak kitöltve. Az emögött álló kód a `main.js` 447. sorától kezdve olvasható. Ennek lényege, hogy először zászló nélkül, szürke színnel rajzolunk ki minden államot, hogy ismerjük a bounding boxuk méreteit. Ezt követően minden egyes államhoz (melyhez ismerjük a legtöbbet főzött nemzetiséget) létrehozunk egy patternt, mely a kitöltésről fog gondoskodni. A patternbe egy image kerül, mely pontosan akkora méretű lesz, mint az adott állam bounding boxa. Az adott zászlót leíró kép image-en belüli megfelelő pozicionálásáról és skálázásáról a `preserveAspectRatio` attribútum értéke gondoskodik.
 
-##### Állam megjelenítése lentről felfelé animációval
+#### Állam megjelenítése lentről felfelé animációval
 
 Ha egy államra kattintunk, akkor az nagyban is megjelenik, egy animáció kíséretében. Az animáció részleteit leíró kód a `main.js` 303. sorában kezdődik. Az animáció egy téglalap mozgatását jelenti. Ez a téglalap azonban egy clipPath-on belül található, aminek köszönhetően csak az jelenik meg, ami a téglalap takarásában van. Minél feljebb mozog ez a téglalap, annál több lesz látható az államból, míg a többi rész átlátszó marad.
 
