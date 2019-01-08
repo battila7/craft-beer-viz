@@ -60,7 +60,33 @@ const paths = require('./paths');
         nationalityNameMap
     };
 
-    writeFile(paths.aggregate, JSON.stringify(result));
+    const nationalityCityPopularity = {};
+
+    for (let nat of Object.keys(nationalityNameMap)) {
+        let min = Number.MAX_SAFE_INTEGER;
+        let max = Number.MIN_SAFE_INTEGER;
+
+        for (let state of Object.values(result.state.aggregate)) {
+            if (state.mostPopularNationality == nat) {
+                console.log(nat);
+                if (state.nationalityCount < min) {
+                    min = state.nationalityCount;
+                }
+
+                if (state.nationalityCount > max) {
+                    max = state.nationalityCount;
+                }
+            }
+        }
+
+        nationalityCityPopularity[nat] = { min, max };
+    }
+
+    result.nationalityCityPopularity = nationalityCityPopularity;
+
+    console.log(result.nationalityCityPopularity);
+
+    writeFile(paths.aggregate + '.asd.json', JSON.stringify(result));
 })();
 
 function readAsJSON(path) {
@@ -227,10 +253,16 @@ function calculateStateAggregates(beers, breweries, states, typeMap, nationaliti
         }
         natCopy.sort((a, b) => a.percentage - b.percentage);
         aggregate.nationalityPopularities = natCopy;
-        if (natCopy[natCopy.length - 2].percentage == 0) {
-            aggregate.mostPopularNationality = 'nope';    
-        } else {
-            aggregate.mostPopularNationality = natCopy[natCopy.length - 2].key;
+
+        for (let i = natCopy.length - 1; i >= 0; --i) {
+            if ((natCopy[i].key != 'american') && (natCopy[i].key != 'misc') && (natCopy[i].percentage > 0)) {
+                aggregate.mostPopularNationality = natCopy[i].key;
+                break;
+            }
+        }
+
+        if (!aggregate.mostPopularNationality) {
+            aggregate.mostPopularNationality = 'unknown';
         }
 
         let natNoAmMiscCopy = [];
@@ -253,6 +285,35 @@ function calculateStateAggregates(beers, breweries, states, typeMap, nationaliti
         styleCopy.sort((a, b) => a.percentage - b.percentage);
         aggregate.stylePopularities = styleCopy;
         aggregate.mostPopularStyle = styleCopy[styleCopy.length - 1].key;
+    }
+
+    for (let state of Object.values(result.aggregate)) {
+        const nat = state.mostPopularNationality;
+
+        const cities = state.cities.map(city => {
+            const cityCopy = Object.assign({}, city);
+
+            cityCopy.breweries = city.breweries.map(brewery => {
+                const breweryCopy = Object.assign({}, brewery);
+
+                breweryCopy.beers = brewery.beers.filter(beer => beer.nationality == nat);
+
+                return breweryCopy;
+            }).filter(brewery => brewery.beers.length > 0);
+
+            return cityCopy;
+        }).filter(city => city.breweries.length > 0);
+
+        state.nationalityCities = cities;
+
+        state.nationalityCount = cities
+            .map(city => city.breweries)
+            .reduce((acc, curr) => acc.concat(curr), [])
+            .map(brewery => brewery.beers)
+            .reduce((acc, curr) => acc.concat(curr), [])
+            .length;
+        
+        console.log(state.nationalityCount);
     }
 
     return result;
