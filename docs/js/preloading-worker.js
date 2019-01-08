@@ -1,15 +1,8 @@
-self.importScripts(
-    'https://d3js.org/d3.v5.min.js',
-    'simplify.js',
-    'dijkstra.js',
-    'centerline.js');
-
 self.onmessage = function onMessage(message) {
-    console.log(message.data);
     main(message.data);
 }
 
-async function main({ height, width, scale }) {
+async function main() {
     const State = {
         data: {},
         centerlines: {}
@@ -17,7 +10,7 @@ async function main({ height, width, scale }) {
 
     sendStatusUpdate('Fetching dataset');
 
-    await fetch('../data/dataset-3.json')
+    await fetch('../data/dataset.json')
         .then(response => response.json())
         .then(dataset => State.data.dataset = dataset)
 
@@ -30,30 +23,6 @@ async function main({ height, width, scale }) {
     sendState();
 
     preloadBreweryLogos();
-
-    function computeCenterlines() {
-        const projection = d3.geoAlbersUsa()
-            .translate([width / 2, height / 2])
-            .scale([scale]);
-
-        State.data.geometry.features.forEach(feature => {
-            if (['Puerto Rico', 'Hawaii', 'Maryland'].includes(feature.properties.name)) {
-                return;
-            }
-
-            const abbreviation = State.data.dataset.inverseStateMap[feature.properties.name];
-            const state = State.data.dataset.state.aggregate[abbreviation];
-
-            if (!state) {
-                return;
-            }
-
-            sendStatusUpdate(`Computing centerline for ${feature.properties.name}`);
-
-            State.centerlines[feature.properties.name] = centerline.computeCenterline(feature, projection);
-            
-        });
-    }
 
     async function preloadBreweryLogos() {
         State.data.breweryLogos = [];
@@ -90,4 +59,3 @@ async function main({ height, width, scale }) {
         self.postMessage({ type: 'logos', data: logos.filter(logo => logo != null) });
     }
 };
-
