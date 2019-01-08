@@ -477,7 +477,7 @@
 
         const otherCities = state.cities.filter(city => state.nationalityCities.find(c => c.city == city.city) == undefined)
 
-        group.selectAll('circle')
+        group.selectAll('circle.other')
             .data(otherCities)
             .enter()
             .append('circle')
