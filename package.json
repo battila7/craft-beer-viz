@@ -4,8 +4,8 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "surge -p ./public",
-    "serve": "http-server -c-1"
+    "deploy": "surge -p ./docs",
+    "serve": "http-server ./docs -c-1"
   },
   "author": "Attila Bagossy",
   "license": "Apache-2.0",
